@@ -88,19 +88,25 @@ function append_(name, rows) {
 function iso_(d) { return (d instanceof Date ? d : new Date(d || Date.now())).toISOString(); }
 
 // ---------------------------------------------------------------- sign-in
+// Returns {email} when the Google sign-in token is valid, else {why} (shown to the person signing in;
+// nothing secret in it: the client ID is public).
 function verify_(token) {
-  if (!token) return null;
+  if (!token) return { why: 'no sign-in token was sent' };
   const cache = CacheService.getScriptCache();
   const key = 'tok_' + Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, token)).slice(0, 40);
   const hit = cache.get(key);
-  if (hit) return hit;
+  if (hit) return { email: hit };
+  const want = String(prop_('CLIENT_ID') || '').trim();
+  if (!want) return { why: 'the CLIENT_ID Script Property is missing' };
   const r = UrlFetchApp.fetch('https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(token), { muteHttpExceptions: true });
-  if (r.getResponseCode() !== 200) return null;
+  if (r.getResponseCode() !== 200) return { why: 'Google did not accept the sign-in token (HTTP ' + r.getResponseCode() + ')' };
   const t = JSON.parse(r.getContentText());
-  if (t.aud !== prop_('CLIENT_ID') || String(t.email_verified) !== 'true' || Number(t.exp) * 1000 < Date.now()) return null;
+  if (t.aud !== want) return { why: 'client ID mismatch: the token is for ' + t.aud + ' but CLIENT_ID is ' + want };
+  if (String(t.email_verified) !== 'true') return { why: 'the Google account email is not verified' };
+  if (Number(t.exp) * 1000 < Date.now()) return { why: 'the sign-in token has expired' };
   const email = String(t.email).toLowerCase();
   cache.put(key, email, 300);
-  return email;
+  return { email: email };
 }
 function reviewer_(email) {
   for (const r of rows_('Reviewers')) {
@@ -291,8 +297,9 @@ function act_(body, u) {
 function doPost(e) {
   let body;
   try { body = JSON.parse(e.postData.contents); } catch (err) { return json_({ ok: false, error: 'bad_json' }); }
-  const email = verify_(body.token);
-  if (!email) return json_({ ok: false, error: 'not_signed_in' });
+  const v = verify_(body.token);
+  if (!v.email) return json_({ ok: false, error: 'not_signed_in', detail: v.why });
+  const email = v.email;
   const u = reviewer_(email);
   if (!u) return json_({ ok: false, error: 'not_on_reviewer_list', email: email });
   const lock = LockService.getScriptLock();          // one change at a time (reservations, decisions)
