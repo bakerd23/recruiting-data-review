@@ -103,7 +103,7 @@
     let j;
     try { j = JSON.parse(text); }
     catch { console.error("not JSON", r.status, text.slice(0, 500)); throw new Error(`The server answered with something unexpected (HTTP ${r.status}).`); }
-    if (!j.ok && (j.error === "not_signed_in")) { signOut("Your sign-in expired. Please sign in again."); throw new Error("signed out"); }
+    if (!j.ok && (j.error === "not_signed_in")) { const m = j.detail ? "Sign-in failed: " + j.detail + "." : "Your sign-in expired. Please sign in again."; signOut(m); throw new Error(m); }
     if (!j.ok && j.error === "not_on_reviewer_list") { signOut(`${j.email} is not on the reviewer list. Ask the project team to add you.`); throw new Error("not listed"); }
     return j;
   }
@@ -130,10 +130,12 @@
       return;
     }
     if (!CFG.clientId) { box.append(el("p", { class: "banner", text: "This copy of the site isn't connected yet (config.js has no client ID)." })); return; }
+    const draw = () => google.accounts.id.renderButton($("#gbtn"), { theme: "outline", size: "large", text: "signin_with" });
+    if (window.google?.accounts?.id) return draw();          // Google's library is set up once per page
     const s = el("script", { src: "https://accounts.google.com/gsi/client", async: true });
     s.onload = () => {
       google.accounts.id.initialize({ client_id: CFG.clientId, callback: (resp) => { token = resp.credential; ss.set("rr.token", token); start(); } });
-      google.accounts.id.renderButton($("#gbtn"), { theme: "outline", size: "large", text: "signin_with" });
+      draw();
     };
     document.head.append(s);
   }
@@ -141,7 +143,7 @@
   // ------------------------------------------------------------------ start + header
   async function start() {
     if (!token) return showSignIn();
-    let j; try { j = await api("me"); } catch (e) { if (token) showSignIn(String(e.message || e)); return; }
+    let j; try { j = await api("me"); } catch (e) { if (token && !/Sign-in failed|sign-in expired|reviewer list/.test(String(e.message))) showSignIn(String(e.message || e)); return; }
     if (!j.ok) return showSignIn(ERR[j.error] || j.error);
     me = j;
     $("#who").textContent = `${me.name || me.email} · ${me.role}`;
