@@ -66,7 +66,7 @@
   <button class="light" id="outBtn" hidden>Sign out</button>
 </header>
 <main id="main"><p class="muted">Loading…</p></main>
-<script src="config.js"></script>
+<script src="config.js?v=2"></script>
 <script>
 (() => {
   "use strict";
@@ -94,9 +94,15 @@
 
   // ------------------------------------------------------------------ API
   async function api(action, extra = {}) {
-    const r = await fetch(ENDPOINT, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
-                                      body: JSON.stringify({ action, token, ...extra }) });
-    const j = await r.json();
+    let r, text;
+    try {
+      r = await fetch(ENDPOINT, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
+                                  body: JSON.stringify({ action, token, ...extra }) });
+      text = await r.text();
+    } catch (e) { console.error("request failed", e); throw new Error("Couldn't reach the server (" + (e.message || e) + ")."); }
+    let j;
+    try { j = JSON.parse(text); }
+    catch { console.error("not JSON", r.status, text.slice(0, 500)); throw new Error(`The server answered with something unexpected (HTTP ${r.status}).`); }
     if (!j.ok && (j.error === "not_signed_in")) { signOut("Your sign-in expired. Please sign in again."); throw new Error("signed out"); }
     if (!j.ok && j.error === "not_on_reviewer_list") { signOut(`${j.email} is not on the reviewer list. Ask the project team to add you.`); throw new Error("not listed"); }
     return j;
@@ -135,7 +141,7 @@
   // ------------------------------------------------------------------ start + header
   async function start() {
     if (!token) return showSignIn();
-    let j; try { j = await api("me"); } catch { return; }
+    let j; try { j = await api("me"); } catch (e) { if (token) showSignIn(String(e.message || e)); return; }
     if (!j.ok) return showSignIn(ERR[j.error] || j.error);
     me = j;
     $("#who").textContent = `${me.name || me.email} · ${me.role}`;
