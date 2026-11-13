@@ -165,17 +165,25 @@
 
   async function open(v) {
     view = v; ss.set("rr.view", v); current = null; progress();
-    if (TOOLS[v]) return loadNext();
-    if (v === "escalated") return showEscalated();
-    if (v === "reviewers") return showReviewers();
-    if (v === "mine") return showMine();
+    try {
+      if (TOOLS[v]) return await loadNext();
+      if (v === "escalated") return await showEscalated();
+      if (v === "reviewers") return await showReviewers();
+      if (v === "mine") return await showMine();
+    } catch (e) { showError(e); }
+  }
+  function showError(e) {
+    console.error(e);
+    main.replaceChildren(el("div", { class: "card" }, el("h2", { text: "Something went wrong" }),
+      el("p", { class: "banner", text: String(e?.message || e) }),
+      el("button", { class: "btn", onclick: () => open(view) }, "Try again")));
   }
 
   // ------------------------------------------------------------------ next item
   async function loadNext() {
     main.replaceChildren(el("p", { class: "muted", text: "Getting your next item…" }));
     const j = await api("next", { tool: view });
-    if (!j.ok) return main.replaceChildren(el("p", { class: "banner", text: ERR[j.error] || j.error }));
+    if (!j.ok) return main.replaceChildren(el("p", { class: "banner", text: (ERR[j.error] || j.error) + (j.detail ? ": " + j.detail : "") }));
     if (!j.item) return main.replaceChildren(el("div", { class: "card" }, el("h2", { text: "Nothing left here" }),
       el("p", { class: "muted", text: `Every ${NOUN[view]} in ${TOOLS[view]} is done or reserved by someone else. Try another tool, or check back later.` })));
     current = { item_id: j.item_id, item: j.item, tool: view };
@@ -286,7 +294,7 @@
     refreshCounts();
     if (mode === "resolve") showEscalated(); else loadNext();
   }
-  async function skip() { if (current) await api("release", { item_id: current.item_id }); loadNext(); }
+  async function skip() { try { if (current) await api("release", { item_id: current.item_id }); await loadNext(); } catch (e) { showError(e); } }
   async function undo() {
     const j = await api("undo");
     if (!j.ok) { alertBar(ERR[j.error] || j.error); return; }
