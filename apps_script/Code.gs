@@ -302,3 +302,7 @@ function doPost(e) {
   finally { lock.releaseLock(); }
 }
 function doGet() { return json_({ ok: true, service: 'recruiting-data-review' }); }
+
+// One-time setup: run this once from the Apps Script editor (select setupTabs, click Run).
+// It creates the five tabs with their header rows. Then add yourself to Reviewers.
+function setupTabs() { Object.keys(H).forEach(name => sheet_(name)); }
