@@ -102,7 +102,18 @@
   let token = ss.get("rr.token"), me = null, view = ss.get("rr.view") || "dup", current = null, ceeb = null, hsIndex = null;
 
   // ------------------------------------------------------------------ API
+  class SignInNeeded extends Error {}
+  // Google sign-in tokens last 1 hour: check the expiry here instead of sending a stale token.
+  function tokenExpired(t) {
+    if (!t || t.startsWith("dev:")) return false;
+    try { const p = JSON.parse(atob(t.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))); return p.exp * 1000 < Date.now() + 60000; }
+    catch { return false; }
+  }
   async function api(action, extra = {}) {
+    if (!token || tokenExpired(token)) {
+      const m = token ? "Your sign-in expired (they last 1 hour). Please sign in again." : "Please sign in.";
+      signOut(m); throw new SignInNeeded(m);
+    }
     let r, text;
     try {
       r = await fetch(ENDPOINT, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -112,8 +123,8 @@
     let j;
     try { j = JSON.parse(text); }
     catch { console.error("not JSON", r.status, text.slice(0, 500)); throw new Error(`The server answered with something unexpected (HTTP ${r.status}).`); }
-    if (!j.ok && (j.error === "not_signed_in")) { const m = j.detail ? "Sign-in failed: " + j.detail + "." : "Your sign-in expired. Please sign in again."; signOut(m); throw new Error(m); }
-    if (!j.ok && j.error === "not_on_reviewer_list") { signOut(`${j.email} is not on the reviewer list. Ask the project team to add you.`); throw new Error("not listed"); }
+    if (!j.ok && (j.error === "not_signed_in")) { const m = j.detail ? "Sign-in failed: " + j.detail + ". Please sign in again." : "Your sign-in expired. Please sign in again."; signOut(m); throw new SignInNeeded(m); }
+    if (!j.ok && j.error === "not_on_reviewer_list") { const m = `${j.email} is not on the reviewer list. Ask the project team to add you.`; signOut(m); throw new SignInNeeded(m); }
     return j;
   }
   const ERR = { already_decided: "Someone already finished this item.", reserved_by_someone_else: "Another reviewer has this item open.",
@@ -152,7 +163,7 @@
   // ------------------------------------------------------------------ start + header
   async function start() {
     if (!token) return showSignIn();
-    let j; try { j = await api("me"); } catch (e) { if (token && !/Sign-in failed|sign-in expired|reviewer list/.test(String(e.message))) showSignIn(String(e.message || e)); return; }
+    let j; try { j = await api("me"); } catch (e) { if (!(e instanceof SignInNeeded)) showSignIn(String(e.message || e)); return; }
     if (!j.ok) return showSignIn(ERR[j.error] || j.error);
     me = j;
     $("#who").textContent = `${me.name || me.email} · ${me.role}`;
@@ -186,6 +197,7 @@
   }
   function showError(e) {
     console.error(e);
+    if (e instanceof SignInNeeded || !token) return;   // the sign-in screen is already showing; don't cover it
     main.replaceChildren(el("div", { class: "card" }, el("h2", { text: "Something went wrong" }),
       el("p", { class: "banner", text: String(e?.message || e) }),
       el("button", { class: "btn", onclick: () => open(view) }, "Try again")));
