@@ -10,8 +10,8 @@
           --same:#2f7d4a; --same-bg:#e5f2e8; --diff:#b4532a; --diff-bg:#fbe9df; --none:#7a7870; --none-bg:#eeede8;
           --display: "Segoe UI Semibold", "Helvetica Neue", Arial, sans-serif; --body: "Segoe UI", "Helvetica Neue", Arial, sans-serif; }
   * { box-sizing: border-box }
-  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 var(--body) }
-  header { background:var(--accent); color:#fff; padding:10px 16px; display:flex; flex-wrap:wrap; gap:10px 16px; align-items:center }
+  body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.35 var(--body) }
+  header { background:var(--accent); color:#fff; padding:6px 12px; display:flex; flex-wrap:wrap; gap:10px 16px; align-items:center }
   header h1 { font:600 18px var(--display); margin:0 8px 0 0; letter-spacing:.02em }
   header button { font:inherit; font-size:14px }
   /* tool picker: a pill that belongs to the maroon header instead of a default white box */
@@ -25,37 +25,37 @@
   header select option, header select optgroup { color:#1d1d1f; background:#fff; font-weight:500 }
   header .who { margin-left:auto; font-size:13px; opacity:.9 }
   header button.light { background:transparent; color:#fff; border:1px solid rgba(255,255,255,.6); border-radius:6px; padding:4px 10px; cursor:pointer }
-  main { max-width:1180px; margin:0 auto; padding:16px }
-  .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px; margin-bottom:14px }
+  main { max-width:1600px; margin:0 auto; padding:8px 10px }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin-bottom:8px }
   .muted { color:var(--muted) } .small { font-size:13px }
-  h2 { font:600 18px var(--display); margin:0 0 6px } h3 { font:600 15px var(--display); margin:12px 0 6px }
-  .why { background:#fff8ef; border-left:4px solid var(--accent2); padding:8px 12px; border-radius:6px; margin:8px 0 12px }
+  h2 { font:600 16px var(--display); margin:0 0 4px } h3 { font:600 14px var(--display); margin:8px 0 4px }
+  .why { background:#fff8ef; border-left:4px solid var(--accent2); padding:4px 10px; border-radius:6px; margin:4px 0 6px }
   table.cmp { width:100%; border-collapse:collapse; font-size:14px }
-  table.cmp th, table.cmp td { border-bottom:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:top }
+  table.cmp th, table.cmp td { border-bottom:1px solid var(--line); padding:3px 8px; text-align:left; vertical-align:top }
   table.cmp th { width:18%; color:var(--muted); font-weight:500 }
   table.cmp td.same { background:var(--same-bg) } table.cmp td.diff { background:var(--diff-bg) }
   table.cmp thead th { color:var(--ink); font-weight:600; background:#faf9f6 }
-  .chips { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 }
-  .chip { border-radius:999px; padding:3px 10px; font-size:13px; border:1px solid var(--line) }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 }
+  .chip { border-radius:999px; padding:2px 9px; font-size:13px; border:1px solid var(--line) }
   .chip.same { background:var(--same-bg); color:var(--same); border-color:#bfdcc8 }
   .chip.different { background:var(--diff-bg); color:var(--diff); border-color:#efc8b4 }
   .chip.missing, .chip.not { background:var(--none-bg); color:var(--none) }
-  .choices { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 }
-  .choice { font:inherit; padding:8px 14px; border-radius:8px; border:1px solid var(--line); background:#fff; cursor:pointer }
+  .choices { display:flex; flex-wrap:wrap; gap:6px; margin:0 }
+  .choice { font:inherit; padding:5px 11px; border-radius:8px; border:1px solid var(--line); background:#fff; cursor:pointer }
   .choice[aria-pressed=true] { border-color:var(--accent); background:#f7e9ee; font-weight:600 }
   .choice.review { border-style:dashed }
   kbd { font:12px ui-monospace, Consolas, monospace; border:1px solid var(--line); border-bottom-width:2px; border-radius:4px; padding:0 5px; margin-left:6px; background:#fafafa }
   textarea, input[type=text], input[type=search], input[type=email], select.f { font:inherit; width:100%; padding:7px 9px; border:1px solid var(--line); border-radius:6px; background:#fff }
-  textarea { min-height:60px }
+  textarea { min-height:44px }
   .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center }
   .grid2 { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px }
-  .btn { font:inherit; padding:7px 14px; border-radius:7px; border:1px solid var(--line); background:#fff; cursor:pointer }
+  .btn { font:inherit; padding:5px 12px; border-radius:7px; border:1px solid var(--line); background:#fff; cursor:pointer }
   .btn.primary { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600 }
   .btn:disabled { opacity:.45; cursor:default }
   .reasons label { display:inline-flex; gap:4px; align-items:center; margin:2px 12px 2px 0; font-size:13px }
   .status { font-size:13px; color:var(--muted) }
   .banner { background:#fff3cd; border:1px solid #f1d58a; padding:8px 12px; border-radius:8px; margin-bottom:12px }
-  .cands button, .results button { display:block; width:100%; text-align:left; font:inherit; font-size:14px; padding:6px 10px; margin:4px 0;
+  .cands button, .results button { display:block; width:100%; text-align:left; font:inherit; font-size:13px; padding:4px 8px; margin:3px 0;
                                    border:1px solid var(--line); border-radius:6px; background:#fff; cursor:pointer }
   .cands button[aria-pressed=true], .results button[aria-pressed=true] { border-color:var(--accent); background:#f7e9ee }
   .two { display:grid; grid-template-columns: 1.1fr 1fr; gap:14px } @media (max-width:820px){ .two { grid-template-columns:1fr } }
@@ -63,6 +63,17 @@
   .signin { max-width:520px; margin:60px auto; text-align:center }
   .signin .btn { margin:4px }
   a { color:var(--accent) }
+  /* the choices + save bar shown above AND below each item; the top one stays in view while scrolling */
+  .actbar { display:flex; flex-wrap:wrap; gap:6px 10px; align-items:center; background:var(--panel); border:1px solid var(--line);
+            border-radius:8px; padding:6px 10px; margin-bottom:8px }
+  .actbar.top { position:sticky; top:0; z-index:5; box-shadow:0 2px 6px rgba(0,0,0,.06) }
+  .actbar .keys { font-size:12px; color:var(--muted); margin-left:auto }
+  .actbar .sep { width:1px; align-self:stretch; background:var(--line) }
+  /* wide screens: details on the left, everything else on the right, so an item fits without scrolling */
+  .itemgrid { display:grid; grid-template-columns:minmax(0, 1.6fr) minmax(300px, 1fr); gap:8px; align-items:start; margin-bottom:8px }
+  @media (max-width:980px) { .itemgrid { grid-template-columns:1fr } }
+  .itemgrid .card { margin-bottom:8px }
+  .ai { display:flex; gap:8px; align-items:center; flex-wrap:wrap }
 </style>
 </head>
 <body>
@@ -111,7 +122,7 @@
   }
   async function api(action, extra = {}) {
     if (token && tokenExpired(token) && !LOCAL) await renew();      // quiet renewal while the Google account is still signed in
-    if (!token || tokenExpired(token)) {
+    if (action !== "test_accounts" && (!token || tokenExpired(token))) {   // the local test sign-in list needs no token
       const m = token ? "Your sign-in expired. Please sign in again." : "Please sign in.";
       signOut(m); throw new SignInNeeded(m);
     }
@@ -276,12 +287,15 @@
       el("div", { class: "why" }, el("b", { text: "Why this pair is here: " }), plainWhy(it.why || "")),
       el("table", { class: "cmp" }, el("thead", {}, el("tr", {}, el("th", {}), el("th", { text: `${A.Source || "A"} · ${A.Record || ""}` }),
                                                                    el("th", { text: `${B.Source || "B"} · ${B.Record || ""}` }))), tb),
-      el("h3", { text: "Private details (shown only as match / no match)" }),
+    );
+    const priv = el("section", { class: "card" }, el("h3", { style: "margin-top:0", text: "Private details (match / no match only)" }),
       el("div", { class: "chips" }, Object.entries(it.flags || {}).map(([k, v]) =>
         el("span", { class: "chip " + (v === "same" ? "same" : v === "different" ? "different" : "missing") },
            `${k}: ${v === "same" ? "match" : v === "different" ? "no match" : v === "not in source" ? "not in this source" : "missing"}`))),
-      it.conflicts ? el("p", { class: "small" }, el("b", { text: "Differs: " }), it.conflicts) : null);
-    main.replaceChildren(card, aiBox(pairPrompt(cur)), decisionBox(cur, mode));
+      it.conflicts ? el("p", { class: "small", style: "margin:4px 0 0" }, el("b", { text: "Differs: " }), it.conflicts) : null);
+    main.replaceChildren(actionBar(cur, mode, "top"),
+      el("div", { class: "itemgrid" }, card, el("div", { class: "side" }, priv, decisionBox(cur, mode), aiBox(pairPrompt(cur)))),
+      actionBar(cur, mode, "bottom"));
   }
   // "Model score 0.43; shared: ..." -> words a reviewer can read without the instructions
   function plainWhy(w) {
@@ -297,8 +311,8 @@
       try { await navigator.clipboard.writeText(text); btn.textContent = "Copied: paste it into your AI assistant"; }
       catch { const ta = el("textarea", { readonly: true, "aria-label": "AI prompt" }); ta.value = text; btn.replaceWith(ta); ta.select(); }
     } }, "Copy AI prompt");
-    return el("section", { class: "card" }, el("h3", { text: "Ask an AI assistant" }),
-      el("p", { class: "small muted", text: "Copies a research request (no private details in it). Check every link it gives you before you decide." }), btn);
+    return el("section", { class: "card ai" }, btn,
+      el("span", { class: "small muted", text: "Research request, no private details. Check every link it gives you." }));
   }
 
   // ------------------------------------------------------------------ decisions
@@ -314,27 +328,32 @@
     choice = null;
     const isHs = cur.tool === "hs";
     const opts = isHs ? Object.keys(HS_LABEL) : Object.keys(PAIR_LABEL);
-    const box = el("section", { class: "card", "aria-label": "Decision" }, el("h3", { text: mode === "resolve" ? "Final decision (senior)" : "Your decision" }));
+    const box = el("section", { class: "card", "aria-label": "Decision details" }, el("h3", { style: "margin-top:0", text: mode === "resolve" ? "Final decision (senior)" : "Your decision" }));
     if (mode === "resolve" && cur.note) box.append(el("p", { class: "banner" }, el("b", { text: "Reviewer's note: " }), cur.note));
-    const ch = el("div", { class: "choices", role: "group" });
+    box.append(
+      el("div", { id: "picked" }, el("p", { class: "small muted", style: "margin:0",
+        text: mode === "resolve" ? "Pick the final answer in the bar above or below." : "Pick a choice in the bar above or below. Can't tell? Needs review: a senior makes the call." })),
+      el("div", { class: "reasons", id: "reasons" }),
+      el("textarea", { id: "note", placeholder: "Note: what you found, with a link" }));
+    return box;
+  }
+  // The choices + Save bar. Drawn twice (above and below the item); both stay in step.
+  function actionBar(cur, mode, pos) {
+    const isHs = cur.tool === "hs";
+    const opts = isHs ? Object.keys(HS_LABEL) : Object.keys(PAIR_LABEL);
+    const ch = el("div", { class: "choices", role: "group", "aria-label": "Choices" });
     for (const v of opts) {
       if (mode === "resolve" && v === "needs_review") continue;
-      ch.append(el("button", { class: "choice" + (v === "needs_review" ? " review" : ""), type: "button", "data-v": v, "aria-pressed": "false",
+      ch.append(el("button", { class: "choice" + (v === "needs_review" ? " review" : ""), type: "button", "data-v": v,
+        "aria-pressed": "false",
         title: v === "needs_review" ? "Sends this item to a senior reviewer. Use it whenever you can't tell." : null,
         onclick: () => pick(cur, v) }, (isHs ? HS_LABEL : PAIR_LABEL)[v], el("kbd", { text: (isHs ? HS_KEYS : PAIR_KEYS)[v] })));
     }
-    box.append(ch,
-      mode === "resolve" ? null : el("p", { class: "small muted", text: "Can't tell? Choose Needs review: a senior reviewer makes the call. Add a note with what you found." }),
-      el("div", { id: "picked" }), el("div", { class: "reasons", id: "reasons" }),
-      el("textarea", { id: "note", placeholder: "Note: what you found, with a link" }),
-      el("div", { class: "row", style: "margin-top:10px" },
-        el("button", { class: "btn primary", id: "saveBtn", type: "button", disabled: true, onclick: () => save(cur, mode) }, mode === "resolve" ? "Save & back to list" : "Save & next"),
-        mode === "resolve" ? null : el("button", { class: "btn", type: "button", onclick: skip }, "Skip"),
-        el("span", { class: "status", id: "saveStatus" })),
-      el("p", { class: "small muted", text: isHs
-        ? "Keys: 1–6 pick a suggestion · M match · S same as another entry · N not on the list · X not a high school · R needs review · Enter save · Ctrl+Z undo"
-        : "Keys: S same player · D different players · R needs review · Enter save · Ctrl+Z undo" }));
-    return box;
+    return el("div", { class: "actbar " + pos }, ch, el("span", { class: "sep" }),
+      el("button", { class: "btn primary saveBtn", type: "button", disabled: true, onclick: () => save(cur, mode) }, mode === "resolve" ? "Save & back to list" : "Save & next"),
+      mode === "resolve" ? null : el("button", { class: "btn", type: "button", onclick: skip }, "Skip"),
+      el("span", { class: "status saveStatus" }),
+      el("span", { class: "keys", text: isHs ? "1-6 pick a suggestion · Enter save · Ctrl+Z undo" : "Enter save · Ctrl+Z undo" }));
   }
   function pick(cur, v) {
     choice = v;
@@ -345,10 +364,11 @@
     if (cur.tool === "hs") hsPicked(cur, v);
     ready();
   }
-  function ready() { const b = $("#saveBtn"); if (b) b.disabled = !choice || (current?.tool === "hs" && !hsReady()); }
+  function ready() { const off = !choice || (current?.tool === "hs" && !hsReady()); document.querySelectorAll(".saveBtn").forEach(b => b.disabled = off); }
   async function save(cur, mode) {
     if (!choice) return;
-    const st = $("#saveStatus"); st.textContent = "Saving…";
+    const sts = [...document.querySelectorAll(".saveStatus")], st = { set textContent(t) { sts.forEach(x => x.textContent = t); } };
+    st.textContent = "Saving…";
     const details = { reasons: [...document.querySelectorAll("#reasons input:checked")].map(i => i.value), ...(cur.tool === "hs" ? hsDetails() : {}) };
     const j = await api(mode === "resolve" ? "resolve" : "decide",
                         { item_id: cur.item_id, decision: choice, details, note: ($("#note").value || "").trim() });
@@ -389,7 +409,7 @@
     if (!ceeb) { const j = await api("ceeb"); ceeb = j.ok ? j.ceeb.ceeb : {}; }
     const s = cur.item.school; pickedCode = null; pickedTarget = null;
     const info = el("section", { class: "card" }, el("h2", { text: s.name }),
-      el("p", {}, [s.city, s.state].filter(Boolean).join(", ") || el("span", { class: "muted", text: "no city or state given" })),
+      el("p", { style: "margin:0" }, [s.city, s.state].filter(Boolean).join(", ") || el("span", { class: "muted", text: "no city or state given" })),
       el("p", { class: "small muted", text: [`From: ${s.source || "Camp sheet"}`, s.players ? `${s.players} players` : null,
         s.years ? `classes ${s.years[0]}–${s.years[1]}` : null, s.sheetCode ? `code written with it: ${s.sheetCode}` : null].filter(Boolean).join(" · ") }),
       cur.item.group_label ? el("div", { class: "why" }, el("b", { text: "Why it's here: " }), cur.item.group_label) : null);
@@ -408,7 +428,10 @@
     });
     const left = el("div", {}, cands, el("h3", { text: "Search the College Board list" }), q, res,
       el("p", { class: "small" }, el("a", { href: "https://satsuite.collegeboard.org/k12-educators/tools-resources/k12-school-code-search", target: "_blank", rel: "noopener", text: "College Board school code search" })));
-    main.replaceChildren(info, el("div", { class: "two" }, el("section", { class: "card" }, left), aiBox(schoolPrompt(s))), decisionBox(cur, mode));
+    main.replaceChildren(actionBar(cur, mode, "top"),
+      el("div", { class: "itemgrid" }, el("div", {}, info, el("section", { class: "card" }, left)),
+        el("div", { class: "side" }, decisionBox(cur, mode), aiBox(schoolPrompt(s)))),
+      actionBar(cur, mode, "bottom"));
   }
   function schoolPrompt(s) {
     const opts = (s.cands || []).map(c => `  ${c.code}: ${ceebLabel(c.code)}`).join("\n");
@@ -540,7 +563,7 @@
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) { e.preventDefault(); undo(); return; }
     if (!current || /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) || e.ctrlKey || e.metaKey || e.altKey) return;
     const k = e.key.toLowerCase(), hs = current.tool === "hs";
-    if (k === "enter") { const b = $("#saveBtn"); if (b && !b.disabled) b.click(); return; }
+    if (k === "enter") { const b = document.querySelector(".saveBtn"); if (b && !b.disabled) b.click(); return; }
     const map = hs ? { m: "match", s: "same_as", n: "newhs", x: "nohs", r: "needs_review" } : { s: "same", d: "different", r: "needs_review" };
     if (map[k] && document.querySelector(`.choice[data-v="${map[k]}"]`)) { pick(current, map[k]); return; }
     if (hs && /^[1-6]$/.test(k)) { const c = current.item.school.cands?.[Number(k) - 1]; if (c) pickCode(current, c.code); }
