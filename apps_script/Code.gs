@@ -76,14 +76,28 @@ function sheet_(name) {
   }
   return sh;
 }
+let MEMO_ = {};                       // cleared at the start of every request; a write to a tab clears that tab
+function forget_(name) { Object.keys(MEMO_).forEach(k => { if (k.indexOf(name + '|') === 0) delete MEMO_[k]; }); }
 function rows_(name, ncols) {
+  const key = name + '|' + (ncols || '');
+  if (MEMO_[key]) return MEMO_[key];
   const sh = sheet_(name), n = sh.getLastRow() - 1;
-  return n > 0 ? sh.getRange(2, 1, n, ncols || H[name].length).getValues() : [];
+  return (MEMO_[key] = n > 0 ? sh.getRange(2, 1, n, ncols || H[name].length).getValues() : []);
 }
 function append_(name, rows) {
   if (!rows.length) return;
+  forget_(name);
   const sh = sheet_(name);
   sh.getRange(sh.getLastRow() + 1, 1, rows.length, rows[0].length).setValues(rows);
+}
+function person_(r, src) {
+  r = r || {};
+  const name = [r['First name'] || r.Name, r['Last name']].filter(String).join(' ') || r.Record || '?';
+  return name + (r.Class ? ', ' + r.Class : '') + (r['High school'] ? ', ' + r['High school'] : '') + ' (' + (r.Source || src || '?') + ')';
+}
+function itemLabel_(p) {
+  if (p.school) { const s = p.school; return (s.name || '?') + (s.city || s.state ? ' · ' + [s.city, s.state].filter(String).join(', ') : ''); }
+  return person_(p.a, p.source) + '  ↔  ' + person_(p.b, p.source);
 }
 function iso_(d) { return (d instanceof Date ? d : new Date(d || Date.now())).toISOString(); }
 
@@ -162,12 +176,20 @@ function release_(itemId, email) {
   const sh = sheet_('Claims'), now = iso_();
   rows_('Claims').forEach((r, i) => {
     if (String(r[0]) === itemId && String(r[2]) === email && new Date(r[4]).getTime() > Date.now())
-      sh.getRange(i + 2, 5).setValue(now);                           // expire it now
+      { sh.getRange(i + 2, 5).setValue(now); forget_('Claims'); }      // expire it now
   });
 }
 
-function nextOpen_(tool, email, byItem, claims) {
-  const items = queueIndex_().filter(q => q.tool === tool).sort((a, b) => b.priority - a.priority || a.row - b.row);
+// Which companies an item comes from, read from its item_id ("pair:tf:x|verified:y", "dup:Verified__x__y").
+const DUP_SRC = { Verified: 'verified', TF: 'tf', UC: 'uc_report', Catapult: 'catapult' };
+function sourcesOf_(id) {
+  if (id.indexOf('pair:') === 0) return id.slice(5).split('|').map(x => x.split(':')[0]);
+  if (id.indexOf('dup:') === 0) { const s = id.slice(4).split('__')[0]; return [DUP_SRC[s] || s.toLowerCase()]; }
+  return [];
+}
+function nextOpen_(tool, email, byItem, claims, src) {
+  const items = queueIndex_().filter(q => q.tool === tool && (!src || sourcesOf_(q.id).indexOf(src) >= 0))
+    .sort((a, b) => b.priority - a.priority || a.row - b.row);
   const mine = items.find(q => claims[q.id] && claims[q.id].email === email && itemState_(byItem[q.id]) === 'open');
   if (mine) return mine;
   return items.find(q => !claims[q.id] && itemState_(byItem[q.id]) === 'open'
@@ -187,6 +209,14 @@ function counts_(email) {
   return out;
 }
 
+// The reviewer's next item plus fresh progress counts, in one answer.
+function next_(tool, src, u) {
+  const byItem = decisionsByItem_(), claims = activeClaims_();
+  const q = nextOpen_(tool, u.email, byItem, claims, src);
+  if (q && !claims[q.id]) claim_(q, u.email);
+  return { ok: true, item: q ? payload_(q.row) : null, item_id: q ? q.id : null, counts: counts_(u.email) };
+}
+
 // ---------------------------------------------------------------- actions
 function act_(body, u) {
   const a = body.action;
@@ -195,11 +225,8 @@ function act_(body, u) {
 
   if (a === 'next') {
     if (TOOLS.indexOf(body.tool) < 0) return { ok: false, error: 'bad_tool' };
-    const byItem = decisionsByItem_(), claims = activeClaims_();
-    const q = nextOpen_(body.tool, u.email, byItem, claims);
-    if (!q) return { ok: true, item: null };
-    if (!claims[q.id]) claim_(q, u.email);
-    return { ok: true, item: payload_(q.row), item_id: q.id };
+    if (body.release) release_(String(body.release), u.email);    // the item being skipped, handed back in the same request
+    return next_(body.tool, String(body.src || ''), u);
   }
 
   if (a === 'release') { release_(String(body.item_id), u.email); return { ok: true }; }
@@ -220,6 +247,8 @@ function act_(body, u) {
     append_('Decisions', [[id, q.id, q.tool, u.email, u.role, a === 'resolve' ? 'resolve' : 'decision', body.decision,
       text_(JSON.stringify(body.details || {}).slice(0, 5000)), text_(String(body.note || '').slice(0, 2000)), iso_(), '']]);
     release_(q.id, u.email);
+    // "Save & next": the next item and the counts come back with the save, so the page needs one request, not three
+    if (body.next && TOOLS.indexOf(body.tool) >= 0) return { ok: true, decision_id: id, next: next_(body.tool, String(body.src || ''), u) };
     return { ok: true, decision_id: id };
   }
 
@@ -240,13 +269,22 @@ function act_(body, u) {
     return { ok: false, error: 'nothing_to_undo' };
   }
 
-  if (a === 'mine') {              // ONLY the caller's own decisions
+  if (a === 'mine') {              // ONLY the caller's own decisions: all of them, newest first, with what each was about
     const all = rows_('Decisions');
     const undone = new Set(all.filter(r => r[5] === 'undo').map(r => String(r[10])));
     const out = all.filter(r => String(r[3]) === u.email && r[5] !== 'undo' && (!body.tool || String(r[2]) === body.tool))
-      .map(r => ({ decision_id: String(r[0]), item_id: String(r[1]), tool: String(r[2]), kind: String(r[5]),
-                   decision: String(r[6]), note: String(r[8]), at: iso_(r[9]), undone: undone.has(String(r[0])) }));
-    return { ok: true, rows: out.slice(-200).reverse() };
+      .map(r => { let d = {}; try { d = JSON.parse(String(r[7] || '{}')); } catch (e) {}
+        return { decision_id: String(r[0]), item_id: String(r[1]), tool: String(r[2]), kind: String(r[5]),
+                 decision: String(r[6]), note: String(r[8]), at: iso_(r[9]), undone: undone.has(String(r[0])),
+                 item_label: String(d.item_label || ''), answer_label: String(d.answer_label || '') }; });
+    // decisions saved before labels existed: describe them from the Queue (one cell each, capped)
+    const missing = out.filter(o => !o.item_label).slice(-300);
+    if (missing.length) {
+      const rowOf = {}; queueIndex_().forEach(q => { rowOf[q.id] = q.row; });
+      const sh = sheet_('Queue');
+      missing.forEach(o => { if (rowOf[o.item_id]) { try { o.item_label = itemLabel_(JSON.parse(String(sh.getRange(rowOf[o.item_id], 5).getValue()))); } catch (e) {} } });
+    }
+    return { ok: true, rows: out.reverse() };
   }
 
   if (a === 'ceeb') {
@@ -284,16 +322,24 @@ function act_(body, u) {
       const i = rs.findIndex(r => String(r[0]).trim().toLowerCase() === email);
       const row = [email, body.role, body.active !== false, text_(String(body.name || '').slice(0, 80)),
                    i >= 0 ? rs[i][4] : u.email, i >= 0 ? rs[i][5] : iso_(), text_(String(body.note || '').slice(0, 300))];
-      if (i >= 0) sh.getRange(i + 2, 1, 1, row.length).setValues([row]); else append_('Reviewers', [row]);
+      if (i >= 0) { sh.getRange(i + 2, 1, 1, row.length).setValues([row]); forget_('Reviewers'); } else append_('Reviewers', [row]);
       append_('AdminLog', [[iso_(), u.email, email, body.role, body.active !== false, row[3], row[6]]]);
     }
+    const all = rows_('Decisions'), undone = new Set(all.filter(r => r[5] === 'undo').map(r => String(r[10]))), cnt = {};
+    all.forEach(r => {
+      if (r[5] === 'undo' || undone.has(String(r[0]))) return;
+      const c = cnt[String(r[3]).toLowerCase()] = cnt[String(r[3]).toLowerCase()] || { hs: 0, dup: 0, pair: 0, needs_review: 0, final: 0, total: 0 };
+      if (r[5] === 'resolve') c.final++; else { c[String(r[2])] = (c[String(r[2])] || 0) + 1; if (String(r[6]) === 'needs_review') c.needs_review++; }
+      c.total++;
+    });
     return { ok: true, rows: rows_('Reviewers').map(r => ({ email: String(r[0]), role: String(r[1]),
       active: r[2] === true || String(r[2]).toUpperCase() === 'TRUE', name: String(r[3]), added_by: String(r[4]),
-      added_at: iso_(r[5]), note: String(r[6]) })) };
+      added_at: iso_(r[5]), note: String(r[6]), counts: cnt[String(r[0]).trim().toLowerCase()] || {} })) };
   }
   return { ok: false, error: 'bad_action' };
 }
 
+const READ_ONLY = ['me', 'mine', 'ceeb', 'hs_index', 'escalated', 'reviewers'];
 function doPost(e) {
   let body;
   try { body = JSON.parse(e.postData.contents); } catch (err) { return json_({ ok: false, error: 'bad_json' }); }
@@ -302,9 +348,16 @@ function doPost(e) {
   const email = v.email;
   const u = reviewer_(email);
   if (!u) return json_({ ok: false, error: 'not_on_reviewer_list', email: email });
+  MEMO_ = {};
+  const you = { role: u.role, name: u.name };
+  // Read-only requests (progress counts, My decisions, lists) don't change anything, so they don't wait in line.
+  if (READ_ONLY.indexOf(body.action) >= 0) {
+    try { const out = act_(body, u); out.you = you; return json_(out); }
+    catch (err) { return json_({ ok: false, error: 'server_error', detail: String(err).slice(0, 300) }); }
+  }
   const lock = LockService.getScriptLock();          // one change at a time (reservations, decisions)
   lock.waitLock(25000);
-  try { return json_(act_(body, u)); }
+  try { const out = act_(body, u); out.you = you; return json_(out); }
   catch (err) { return json_({ ok: false, error: 'server_error', detail: String(err).slice(0, 300) }); }
   finally { lock.releaseLock(); }
 }

@@ -9,9 +9,9 @@
   :root { --bg:#f6f5f2; --panel:#fff; --ink:#1d1d1f; --muted:#62615c; --line:#dedbd3; --accent:#861f41; --accent2:#e5751f;
           --same:#2f7d4a; --same-bg:#e5f2e8; --diff:#b4532a; --diff-bg:#fbe9df; --none:#7a7870; --none-bg:#eeede8;
           --display: "Segoe UI Semibold", "Helvetica Neue", Arial, sans-serif; --body: "Segoe UI", "Helvetica Neue", Arial, sans-serif; }
-  * { box-sizing: border-box }
-  body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.35 var(--body) }
-  header { background:var(--accent); color:#fff; padding:6px 12px; display:flex; flex-wrap:wrap; gap:10px 16px; align-items:center }
+  * { box-sizing: border-box } [hidden] { display:none !important }
+  body { margin:0; background:var(--bg); color:var(--ink); font:14.5px/1.45 var(--body) }
+  header { background:var(--accent); color:#fff; padding:8px 16px; display:flex; flex-wrap:wrap; gap:10px 16px; align-items:center }
   header h1 { font:600 18px var(--display); margin:0 8px 0 0; letter-spacing:.02em }
   header button { font:inherit; font-size:14px }
   /* tool picker: a pill that belongs to the maroon header instead of a default white box */
@@ -25,54 +25,55 @@
   header select option, header select optgroup { color:#1d1d1f; background:#fff; font-weight:500 }
   header .who { margin-left:auto; font-size:13px; opacity:.9 }
   header button.light { background:transparent; color:#fff; border:1px solid rgba(255,255,255,.6); border-radius:6px; padding:4px 10px; cursor:pointer }
-  main { max-width:1600px; margin:0 auto; padding:8px 10px }
-  .card { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin-bottom:8px }
+  main { max-width:1560px; margin:0 auto; padding:12px 16px }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:12px; box-shadow:0 1px 2px rgba(0,0,0,.03) }
   .muted { color:var(--muted) } .small { font-size:13px }
-  h2 { font:600 16px var(--display); margin:0 0 4px } h3 { font:600 14px var(--display); margin:8px 0 4px }
-  .why { background:#fff8ef; border-left:4px solid var(--accent2); padding:4px 10px; border-radius:6px; margin:4px 0 6px }
+  h2 { font:600 17px var(--display); margin:0 0 6px } h3 { font:600 14.5px var(--display); margin:10px 0 6px }
+  .why { background:#fff8ef; border-left:4px solid var(--accent2); padding:7px 12px; border-radius:6px; margin:6px 0 10px }
   table.cmp { width:100%; border-collapse:collapse; font-size:14px }
-  table.cmp th, table.cmp td { border-bottom:1px solid var(--line); padding:3px 8px; text-align:left; vertical-align:top }
+  table.cmp th, table.cmp td { border-bottom:1px solid var(--line); padding:5px 10px; text-align:left; vertical-align:top }
   table.cmp th { width:18%; color:var(--muted); font-weight:500 }
   table.cmp td.same { background:var(--same-bg) } table.cmp td.diff { background:var(--diff-bg) }
   table.cmp thead th { color:var(--ink); font-weight:600; background:#faf9f6 }
-  .chips { display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 }
-  .chip { border-radius:999px; padding:2px 9px; font-size:13px; border:1px solid var(--line) }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; margin:6px 0 }
+  .chip { border-radius:999px; padding:3px 11px; font-size:13px; border:1px solid var(--line) }
   .chip.same { background:var(--same-bg); color:var(--same); border-color:#bfdcc8 }
   .chip.different { background:var(--diff-bg); color:var(--diff); border-color:#efc8b4 }
   .chip.missing, .chip.not { background:var(--none-bg); color:var(--none) }
-  .choices { display:flex; flex-wrap:wrap; gap:6px; margin:0 }
-  .choice { font:inherit; padding:5px 11px; border-radius:8px; border:1px solid var(--line); background:#fff; cursor:pointer }
+  .choices { display:flex; flex-wrap:wrap; gap:8px; margin:0 }
+  .choice { font:inherit; padding:7px 14px; border-radius:8px; border:1px solid var(--line); background:#fff; cursor:pointer }
   .choice[aria-pressed=true] { border-color:var(--accent); background:#f7e9ee; font-weight:600 }
   .choice.review { border-style:dashed }
   kbd { font:12px ui-monospace, Consolas, monospace; border:1px solid var(--line); border-bottom-width:2px; border-radius:4px; padding:0 5px; margin-left:6px; background:#fafafa }
   textarea, input[type=text], input[type=search], input[type=email], select.f { font:inherit; width:100%; padding:7px 9px; border:1px solid var(--line); border-radius:6px; background:#fff }
-  textarea { min-height:44px }
+  textarea { min-height:56px }
   .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center }
   .grid2 { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px }
-  .btn { font:inherit; padding:5px 12px; border-radius:7px; border:1px solid var(--line); background:#fff; cursor:pointer }
+  .btn { font:inherit; padding:7px 15px; border-radius:7px; border:1px solid var(--line); background:#fff; cursor:pointer }
   .btn.primary { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600 }
   .btn:disabled { opacity:.45; cursor:default }
   .reasons label { display:inline-flex; gap:4px; align-items:center; margin:2px 12px 2px 0; font-size:13px }
   .status { font-size:13px; color:var(--muted) }
   .banner { background:#fff3cd; border:1px solid #f1d58a; padding:8px 12px; border-radius:8px; margin-bottom:12px }
-  .cands button, .results button { display:block; width:100%; text-align:left; font:inherit; font-size:13px; padding:4px 8px; margin:3px 0;
+  .cands button, .results button { display:block; width:100%; text-align:left; font:inherit; font-size:13.5px; padding:6px 10px; margin:5px 0;
                                    border:1px solid var(--line); border-radius:6px; background:#fff; cursor:pointer }
   .cands button[aria-pressed=true], .results button[aria-pressed=true] { border-color:var(--accent); background:#f7e9ee }
   .two { display:grid; grid-template-columns: 1.1fr 1fr; gap:14px } @media (max-width:820px){ .two { grid-template-columns:1fr } }
-  .list td, .list th { padding:5px 8px; border-bottom:1px solid var(--line); font-size:13px; text-align:left }
+  .list td.num { text-align:right; font-variant-numeric:tabular-nums }
+  .list td, .list th { padding:6px 10px; border-bottom:1px solid var(--line); font-size:13px; text-align:left }
   .signin { max-width:520px; margin:60px auto; text-align:center }
   .signin .btn { margin:4px }
   a { color:var(--accent) }
   /* the choices + save bar shown above AND below each item; the top one stays in view while scrolling */
-  .actbar { display:flex; flex-wrap:wrap; gap:6px 10px; align-items:center; background:var(--panel); border:1px solid var(--line);
-            border-radius:8px; padding:6px 10px; margin-bottom:8px }
+  .actbar { display:flex; flex-wrap:wrap; gap:8px 12px; align-items:center; background:var(--panel); border:1px solid var(--line);
+            border-radius:10px; padding:9px 14px; margin-bottom:12px }
   .actbar.top { position:sticky; top:0; z-index:5; box-shadow:0 2px 6px rgba(0,0,0,.06) }
   .actbar .keys { font-size:12px; color:var(--muted); margin-left:auto }
   .actbar .sep { width:1px; align-self:stretch; background:var(--line) }
   /* wide screens: details on the left, everything else on the right, so an item fits without scrolling */
-  .itemgrid { display:grid; grid-template-columns:minmax(0, 1.6fr) minmax(300px, 1fr); gap:8px; align-items:start; margin-bottom:8px }
+  .itemgrid { display:grid; grid-template-columns:minmax(0, 1.6fr) minmax(320px, 1fr); gap:12px; align-items:start; margin-bottom:12px }
   @media (max-width:980px) { .itemgrid { grid-template-columns:1fr } }
-  .itemgrid .card { margin-bottom:8px }
+  .itemgrid .card { margin-bottom:12px }
   .ai { display:flex; gap:8px; align-items:center; flex-wrap:wrap }
 </style>
 </head>
@@ -80,6 +81,9 @@
 <header>
   <h1>Recruiting Data Review</h1>
   <div class="toolpick" id="toolPick" hidden><label for="toolSel">Tool</label><select id="toolSel"></select></div>
+  <div class="toolpick" id="srcPick" hidden><label for="srcSel">Company</label><select id="srcSel">
+    <option value="">All companies</option><option value="verified">Verified</option><option value="tf">Tracking Football</option>
+    <option value="uc_report">UC Report</option><option value="catapult">Catapult</option></select></div>
   <span id="progress" class="small"></span>
   <button class="light" id="undoBtn" hidden title="Undo your last decision (Ctrl+Z)">Undo last decision</button>
   <span class="who" id="who"></span>
@@ -140,6 +144,7 @@
       const m = j.detail ? "Sign-in failed: " + j.detail + ". Please sign in again." : "Your sign-in expired. Please sign in again."; signOut(m); throw new SignInNeeded(m);
     }
     if (!j.ok && j.error === "not_on_reviewer_list") { const m = `${j.email} is not on the reviewer list. Ask an admin to add you.`; signOut(m); throw new SignInNeeded(m); }
+    roleCheck(j);
     return j;
   }
   const ERR = { already_decided: "Someone already finished this item.", reserved_by_someone_else: "Another reviewer has this item open.",
@@ -211,8 +216,14 @@
     let j; try { j = await api("me"); } catch (e) { if (!(e instanceof SignInNeeded)) showSignIn(String(e.message || e)); return; }
     if (!j.ok) return showSignIn(ERR[j.error] || j.error);
     me = j;
-    $("#who").textContent = `${me.name || me.email} · ${me.role}`;
     $("#outBtn").hidden = false; $("#undoBtn").hidden = false;
+    buildMenu();
+    open(view);
+    startCountsRefresh();
+  }
+  // Name, role and the Tool menu for the current role. Rebuilt when an admin changes this person's role.
+  function buildMenu() {
+    $("#who").textContent = `${me.name || me.email} · ${me.role}`;
     const sel = $("#toolSel"); sel.replaceChildren(); $("#toolPick").hidden = false;
     const review = el("optgroup", { label: "Review" });
     for (const [k, v] of Object.entries(TOOLS)) review.append(el("option", { value: k, text: v }));
@@ -223,7 +234,23 @@
     sel.append(review, more);
     if (![...sel.options].some(o => o.value === view)) view = "dup";
     sel.value = view;
-    open(view);
+  }
+  // Every answer says the caller's current role. If an admin changed it, update the label and menu now.
+  function roleCheck(j) {
+    if (!me || !j || !j.you) return;
+    if (j.you.role === me.role && j.you.name === me.name) return;
+    const lost = (view === "escalated" && j.you.role === "intern") || (view === "reviewers" && j.you.role !== "admin");
+    me.role = j.you.role; me.name = j.you.name;
+    buildMenu();
+    if (lost) { view = "dup"; $("#toolSel").value = view; open(view); }
+    alertBar(`Your role is now ${me.role}.`);
+  }
+  // The "x of y done" line: refreshed with every save/skip, and every 90 seconds while this tab is open,
+  // so other reviewers' work shows up too.
+  let countsTimer = null;
+  function startCountsRefresh() {
+    clearInterval(countsTimer);
+    countsTimer = setInterval(() => { if (token && me && document.visibilityState === "visible") refreshCounts(); }, 90000);
   }
   function progress() {
     const c = me?.counts?.[view];
@@ -231,8 +258,11 @@
   }
   async function refreshCounts() { try { const j = await api("me"); if (j.ok) { me.counts = j.counts; progress(); } } catch {} }
 
+  // Company filter: only for the two pair tools. Saved for this browser tab.
+  const srcNow = () => (view === "dup" || view === "pair") ? ($("#srcSel").value || "") : "";
+  function showSrcPick() { $("#srcPick").hidden = !(view === "dup" || view === "pair"); }
   async function open(v) {
-    view = v; ss.set("rr.view", v); current = null; progress();
+    view = v; ss.set("rr.view", v); current = null; progress(); showSrcPick();
     try {
       if (TOOLS[v]) return await loadNext();
       if (v === "escalated") return await showEscalated();
@@ -249,12 +279,20 @@
   }
 
   // ------------------------------------------------------------------ next item
-  async function loadNext() {
+  async function loadNext(releaseId) {
     main.replaceChildren(el("p", { class: "muted", text: "Getting your next item…" }));
-    const j = await api("next", { tool: view });
+    const j = await api("next", { tool: view, src: srcNow(), release: releaseId || "" });
+    showItem(j);
+  }
+  // Shows the item a "next" or "decide" answer brought back.
+  function showItem(j) {
     if (!j.ok) return main.replaceChildren(el("p", { class: "banner", text: (ERR[j.error] || j.error) + (j.detail ? ": " + j.detail : "") }));
-    if (!j.item) return main.replaceChildren(el("div", { class: "card" }, el("h2", { text: "Nothing left here" }),
-      el("p", { class: "muted", text: `Every ${NOUN[view]} in ${TOOLS[view]} is done or reserved by someone else. Try another tool, or check back later.` })));
+    if (j.counts && me) { me.counts = j.counts; progress(); }
+    if (!j.item) {
+      const src = srcNow() ? ` from ${$("#srcSel").selectedOptions[0].textContent}` : "";
+      return main.replaceChildren(el("div", { class: "card" }, el("h2", { text: "Nothing left here" }),
+        el("p", { class: "muted", text: `Every ${NOUN[view]}${src} in ${TOOLS[view]} is done or reserved by someone else. Try another ${src ? "company or " : ""}tool, or check back later.` })));
+    }
     current = { item_id: j.item_id, item: j.item, tool: view };
     render(current, "decide");
   }
@@ -266,7 +304,9 @@
   // ------------------------------------------------------------------ pair view (dup + pair)
   const LINK_KEYS = ["Profile", "Hudl", "Twitter", "247", "On3"];
   const HIDE = new Set(["key", "Source", "Record"]);
-  const norm = (v) => String(v ?? "").toLowerCase().replace(/\(([a-z]{2})\)$/, "").replace(/[^a-z0-9]/g, "");
+  // compare values the way a person would: ignore case, punctuation, "https://www." and a trailing "(VA)"
+  const norm = (v) => String(v ?? "").toLowerCase().replace(/^https?:\/\/(www\.)?/, "").replace(/^www\./, "")
+    .replace(/\(([a-z]{2})\)$/, "").replace(/[^a-z0-9]/g, "");
   function linkify(k, v) {
     const url = /^https?:/.test(v) ? v : k === "Twitter" ? "https://x.com/" + v : /^[\w.-]+\.\w+\//.test(v) ? "https://" + v : null;
     return url ? el("a", { href: url, target: "_blank", rel: "noopener", text: v.replace(/^https?:\/\/(www\.)?/, "") }) : v;
@@ -285,8 +325,8 @@
     const title = cur.tool === "dup" ? `Two ${it.source || ""} profiles: one player or two?` : "Two profiles from different sites: one player or two?";
     const card = el("section", { class: "card" }, el("h2", { text: title }),
       el("div", { class: "why" }, el("b", { text: "Why this pair is here: " }), plainWhy(it.why || "")),
-      el("table", { class: "cmp" }, el("thead", {}, el("tr", {}, el("th", {}), el("th", { text: `${A.Source || "A"} · ${A.Record || ""}` }),
-                                                                   el("th", { text: `${B.Source || "B"} · ${B.Record || ""}` }))), tb),
+      el("table", { class: "cmp" }, el("thead", {}, el("tr", {}, el("th", {}), el("th", { text: colHead(A, it, "A") }),
+                                                                   el("th", { text: colHead(B, it, "B") }))), tb),
     );
     const priv = el("section", { class: "card" }, el("h3", { style: "margin-top:0", text: "Private details (match / no match only)" }),
       el("div", { class: "chips" }, Object.entries(it.flags || {}).map(([k, v]) =>
@@ -296,6 +336,11 @@
     main.replaceChildren(actionBar(cur, mode, "top"),
       el("div", { class: "itemgrid" }, card, el("div", { class: "side" }, priv, decisionBox(cur, mode), aiBox(pairPrompt(cur)))),
       actionBar(cur, mode, "bottom"));
+  }
+  // Column title: company and record ID (duplicates carry the company on the item, the ID in the key)
+  function colHead(r, it, letter) {
+    const rec = r.Record || String(r.key || "").split(":").slice(1).join(":");
+    return `${r.Source || it.source || "Profile " + letter}${rec ? " · " + rec : ""}`;
   }
   // "Model score 0.43; shared: ..." -> words a reviewer can read without the instructions
   function plainWhy(w) {
@@ -369,15 +414,16 @@
     if (!choice) return;
     const sts = [...document.querySelectorAll(".saveStatus")], st = { set textContent(t) { sts.forEach(x => x.textContent = t); } };
     st.textContent = "Saving…";
-    const details = { reasons: [...document.querySelectorAll("#reasons input:checked")].map(i => i.value), ...(cur.tool === "hs" ? hsDetails() : {}) };
+    const details = { reasons: [...document.querySelectorAll("#reasons input:checked")].map(i => i.value), ...(cur.tool === "hs" ? hsDetails() : {}),
+                      item_label: itemLabel(cur), answer_label: answerLabel(cur) };
     const j = await api(mode === "resolve" ? "resolve" : "decide",
-                        { item_id: cur.item_id, decision: choice, details, note: ($("#note").value || "").trim() });
+                        { item_id: cur.item_id, decision: choice, details, note: ($("#note").value || "").trim(),
+                          next: mode !== "resolve", tool: view, src: srcNow() });
     if (!j.ok) { st.textContent = ERR[j.error] || j.error; return; }
     st.textContent = "Saved.";
-    refreshCounts();
-    if (mode === "resolve") showEscalated(); else loadNext();
+    if (mode === "resolve") { refreshCounts(); showEscalated(); } else showItem(j.next || { ok: true, item: null });
   }
-  async function skip() { try { if (current) await api("release", { item_id: current.item_id }); await loadNext(); } catch (e) { showError(e); } }
+  async function skip() { try { await loadNext(current?.item_id); } catch (e) { showError(e); } }
   async function undo() {
     const j = await api("undo");
     if (!j.ok) { alertBar(ERR[j.error] || j.error); return; }
@@ -406,7 +452,11 @@
   const ceebLabel = (code) => { const c = ceeb?.[code]; return c ? `${c[0]}, ${c[1]} (${c[2]})` : code; };
 
   async function renderSchool(cur, mode) {
-    if (!ceeb) { const j = await api("ceeb"); ceeb = j.ok ? j.ceeb.ceeb : {}; }
+    if (!ceeb) { try { ceeb = JSON.parse(localStorage.getItem("rr.ceeb.v1") || "null"); } catch { ceeb = null; } }
+    if (!ceeb) {
+      const j = await api("ceeb"); ceeb = j.ok ? j.ceeb.ceeb : {};
+      if (j.ok) { try { localStorage.setItem("rr.ceeb.v1", JSON.stringify(ceeb)); } catch {} }   // too big or blocked: fine, just not kept
+    }
     const s = cur.item.school; pickedCode = null; pickedTarget = null;
     const info = el("section", { class: "card" }, el("h2", { text: s.name }),
       el("p", { style: "margin:0" }, [s.city, s.state].filter(Boolean).join(", ") || el("span", { class: "muted", text: "no city or state given" })),
@@ -506,6 +556,25 @@
     return {};
   }
 
+  // Short descriptions saved with each decision, so "My decisions" can show what was decided.
+  function person(r, src) {
+    r = r || {};
+    const name = [r["First name"] || r.Name, r["Last name"]].filter(Boolean).join(" ") || r.Record || "?";
+    return `${name}${r.Class ? ", " + r.Class : ""}${r["High school"] ? ", " + r["High school"] : ""} (${r.Source || src || "?"})`;
+  }
+  function itemLabel(cur) {
+    const it = cur.item || {};
+    if (cur.tool === "hs") { const s = it.school || {}; return `${s.name || "?"}${s.city || s.state ? " · " + [s.city, s.state].filter(Boolean).join(", ") : ""}`; }
+    return `${person(it.a, it.source)}  ↔  ${person(it.b, it.source)}`;
+  }
+  function answerLabel(cur) {
+    if (cur.tool !== "hs") return "";
+    if (choice === "match" && pickedCode) return `${ceebLabel(pickedCode)} · code ${pickedCode}`;
+    if (choice === "same_as" && pickedTarget) return `same as ${pickedTarget.label}`;
+    if (choice === "newhs" || choice === "nohs") { const d = hsDetails(); return [d.name, d.city, d.state || d.country, d.level].filter(Boolean).join(", "); }
+    return "";
+  }
+
   // ------------------------------------------------------------------ seniors, admin, my decisions
   async function showEscalated() {
     main.replaceChildren(el("p", { class: "muted", text: "Loading the senior review queue…" }));
@@ -528,14 +597,20 @@
     const em = el("input", { type: "email", id: "revEmail", placeholder: "name@example.com" }), nm = el("input", { type: "text", id: "revName", placeholder: "Name" });
     const rl = el("select", { class: "f", id: "revRole" }, ...["intern", "senior", "admin"].map(x => el("option", { value: x, text: x })));
     const tb = el("tbody");
+    const n = (r, k) => (r.counts?.[k] || 0).toLocaleString();
     j.rows.forEach(r => tb.append(el("tr", {}, el("td", { text: r.email }), el("td", { text: r.name }), el("td", { text: r.role }),
-      el("td", { text: r.active ? "active" : "removed" }), el("td", { text: r.added_by }),
+      el("td", { text: r.active ? "active" : "removed" }),
+      el("td", { class: "num", text: n(r, "hs") }), el("td", { class: "num", text: n(r, "dup") }), el("td", { class: "num", text: n(r, "pair") }),
+      el("td", { class: "num", text: n(r, "needs_review") }), el("td", { class: "num", text: n(r, "final") }),
+      el("td", { class: "num", text: n(r, "total") }), el("td", { text: r.added_by }),
       el("td", {}, el("div", { class: "row" },
         el("button", { class: "btn", onclick: () => { em.value = r.email; nm.value = r.name; rl.value = r.role; em.readOnly = true; nm.focus(); } }, "Edit"),
         el("button", { class: "btn", onclick: () => setRev(r.email, r.role, !r.active, r.name, r.note) }, r.active ? "Remove access" : "Restore"))))));
     main.replaceChildren(el("section", { class: "card" }, el("h2", { text: "Reviewers" }),
       el("p", { class: "small muted", text: "Only people on this list can sign in. Interns review; seniors also decide items marked Needs review; admins also manage this list. Every change is logged." }),
-      el("table", { class: "list" }, el("thead", {}, el("tr", {}, ...["Email", "Name", "Role", "Access", "Added by", ""].map(h => el("th", { text: h })))), tb),
+      el("p", { class: "small muted", style: "margin:0 0 6px", text: "Decision counts: decisions in effect (undone ones not counted). Needs review is included in the tool counts; Final = senior calls on Needs review items." }),
+      el("div", { style: "overflow-x:auto" }, el("table", { class: "list" }, el("thead", {}, el("tr", {},
+        ...["Email", "Name", "Role", "Access", "High schools", "Duplicates", "Cross-source", "Needs review", "Final (senior)", "Total", "Added by", ""].map(h => el("th", { text: h })))), tb)),
       el("h3", { text: "Add a reviewer, or change one (click Edit on their row)" }),
       el("div", { class: "row" }, em, nm, rl, el("button", { class: "btn primary", onclick: () => setRev(em.value, rl.value, true, nm.value, "") }, "Save"))));
   }
@@ -546,18 +621,44 @@
   }
   async function showMine() {
     const j = await api("mine");
+    if (!j.ok) return main.replaceChildren(el("p", { class: "banner", text: ERR[j.error] || j.error }));
+    const rows = j.rows || [];
+    const toolSel = el("select", { class: "f", style: "width:auto" }, el("option", { value: "", text: "All tools" }),
+      ...Object.entries(TOOLS).map(([k, v]) => el("option", { value: k, text: v })));
+    const search = el("input", { type: "search", placeholder: "Search names, schools, notes", style: "max-width:320px" });
+    const count = el("span", { class: "small muted" });
     const tb = el("tbody");
-    (j.rows || []).forEach(r => tb.append(el("tr", {}, el("td", { text: new Date(r.at).toLocaleString() }), el("td", { text: TOOLS[r.tool] }),
-      el("td", { text: (r.tool === "hs" ? HS_LABEL : PAIR_LABEL)[r.decision] || r.decision }), el("td", { text: r.undone ? "undone" : r.kind === "resolve" ? "final (senior)" : "" }),
-      el("td", { text: r.note }))));
+    const draw = () => {
+      const t = toolSel.value, q = search.value.trim().toLowerCase();
+      const shown = rows.filter(r => (!t || r.tool === t) &&
+        (!q || [r.item_label, r.answer_label, r.note].join(" ").toLowerCase().includes(q)));
+      tb.replaceChildren(...shown.map(r => el("tr", { style: r.undone ? "opacity:.55" : null },
+        el("td", { style: "white-space:nowrap", text: new Date(r.at).toLocaleString() }),
+        el("td", { text: TOOLS[r.tool] || r.tool }),
+        el("td", { text: r.item_label || r.item_id }),
+        el("td", {}, el("b", { text: (r.tool === "hs" ? HS_LABEL : PAIR_LABEL)[r.decision] || r.decision }),
+          r.answer_label ? el("div", { class: "small muted", text: r.answer_label }) : null),
+        el("td", { text: r.undone ? "undone" : r.kind === "resolve" ? "final (senior)" : "" }),
+        el("td", { text: r.note }))));
+      count.textContent = `${shown.length.toLocaleString()} of ${rows.length.toLocaleString()} decisions`;
+    };
+    toolSel.addEventListener("change", draw); search.addEventListener("input", draw);
     main.replaceChildren(el("section", { class: "card" }, el("h2", { text: "My decisions" }),
-      el("p", { class: "small muted", text: "Your last 200 decisions. Only you can see these." }),
-      el("table", { class: "list" }, el("thead", {}, el("tr", {}, ...["When", "Tool", "Decision", "", "Note"].map(h => el("th", { text: h })))), tb)));
+      el("p", { class: "small muted", style: "margin:0 0 6px", text: "Every decision you've made, newest first. Only you can see these. Undone ones are greyed out." }),
+      el("div", { class: "row", style: "margin-bottom:6px" }, toolSel, search, count),
+      el("div", { style: "overflow-x:auto" }, el("table", { class: "list" },
+        el("thead", {}, el("tr", {}, ...["When", "Tool", "Item", "Decision", "", "Note"].map(h => el("th", { text: h })))), tb))));
+    draw();
   }
 
   // ------------------------------------------------------------------ wiring
   $("#toolSel").addEventListener("change", async (e) => { if (current && TOOLS[view]) { try { await api("release", { item_id: current.item_id }); } catch {} } open(e.target.value); });
   $("#undoBtn").addEventListener("click", undo);
+  $("#srcSel").value = ss.get("rr.src") || "";
+  $("#srcSel").addEventListener("change", async (e) => {
+    ss.set("rr.src", e.target.value);
+    if (TOOLS[view] && view !== "hs") { try { await loadNext(current?.item_id); } catch (err) { showError(err); } }
+  });
   $("#outBtn").addEventListener("click", () => signOut("You signed out.", true));
   addEventListener("keydown", (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) { e.preventDefault(); undo(); return; }
