@@ -187,8 +187,9 @@ function sourcesOf_(id) {
   if (id.indexOf('dup:') === 0) { const s = id.slice(4).split('__')[0]; return [DUP_SRC[s] || s.toLowerCase()]; }
   return [];
 }
-function nextOpen_(tool, email, byItem, claims, src) {
-  const items = queueIndex_().filter(q => q.tool === tool && (!src || sourcesOf_(q.id).indexOf(src) >= 0))
+function nextOpen_(tool, email, byItem, claims, src, skipped) {
+  const skip = new Set((skipped || []).map(String));          // items this person skipped: not shown to them again
+  const items = queueIndex_().filter(q => q.tool === tool && !skip.has(q.id) && (!src || sourcesOf_(q.id).indexOf(src) >= 0))
     .sort((a, b) => b.priority - a.priority || a.row - b.row);
   const mine = items.find(q => claims[q.id] && claims[q.id].email === email && itemState_(byItem[q.id]) === 'open');
   if (mine) return mine;
@@ -210,9 +211,9 @@ function counts_(email) {
 }
 
 // The reviewer's next item plus fresh progress counts, in one answer.
-function next_(tool, src, u) {
+function next_(tool, src, u, skipped) {
   const byItem = decisionsByItem_(), claims = activeClaims_();
-  const q = nextOpen_(tool, u.email, byItem, claims, src);
+  const q = nextOpen_(tool, u.email, byItem, claims, src, skipped);
   if (q && !claims[q.id]) claim_(q, u.email);
   return { ok: true, item: q ? payload_(q.row) : null, item_id: q ? q.id : null, counts: counts_(u.email) };
 }
@@ -226,7 +227,7 @@ function act_(body, u) {
   if (a === 'next') {
     if (TOOLS.indexOf(body.tool) < 0) return { ok: false, error: 'bad_tool' };
     if (body.release) release_(String(body.release), u.email);    // the item being skipped, handed back in the same request
-    return next_(body.tool, String(body.src || ''), u);
+    return next_(body.tool, String(body.src || ''), u, (body.skipped || []).slice(-300));
   }
 
   if (a === 'release') { release_(String(body.item_id), u.email); return { ok: true }; }
@@ -249,7 +250,7 @@ function act_(body, u) {
       text_(JSON.stringify(body.details || {}).slice(0, 5000)), text_(String(body.note || '').slice(0, 2000)), iso_(), '']]);
     release_(q.id, u.email);
     // "Save & next": the next item and the counts come back with the save, so the page needs one request, not three
-    if (body.next && TOOLS.indexOf(body.tool) >= 0) return { ok: true, decision_id: id, next: next_(body.tool, String(body.src || ''), u) };
+    if (body.next && TOOLS.indexOf(body.tool) >= 0) return { ok: true, decision_id: id, next: next_(body.tool, String(body.src || ''), u, (body.skipped || []).slice(-300)) };
     return { ok: true, decision_id: id };
   }
 

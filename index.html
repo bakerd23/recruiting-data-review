@@ -283,7 +283,7 @@
   // ------------------------------------------------------------------ next item
   async function loadNext(releaseId) {
     main.replaceChildren(el("p", { class: "muted", text: "Getting your next item…" }));
-    const j = await api("next", { tool: view, src: srcNow(), release: releaseId || "" });
+    const j = await api("next", { tool: view, src: srcNow(), release: releaseId || "", skipped: skippedList() });
     showItem(j);
   }
   // Shows the item a "next" or "decide" answer brought back.
@@ -442,14 +442,19 @@
                       item_label: itemLabel(cur), answer_label: answerLabel(cur) };
     const j = await api(mode === "resolve" ? "resolve" : "decide",
                         { item_id: cur.item_id, decision: choice, details, note: noteText(),
-                          next: mode !== "resolve", tool: view, src: srcNow() });
+                          next: mode !== "resolve", tool: view, src: srcNow(), skipped: skippedList() });
     if (!j.ok) { st.textContent = ERR[j.error] || j.error; return; }
     st.textContent = "Saved.";
     if (mode === "resolve") { refreshCounts(); showEscalated(); }
     else if (j.next) showItem(j.next);
     else { refreshCounts(); loadNext(); }        // a server that hasn't been updated yet doesn't send the next item
   }
-  async function skip() { try { await loadNext(current?.item_id); } catch (e) { showError(e); } }
+  // Skip: hand the item back for someone else and don't show it to this person again in this browser session.
+  function skippedList() { try { return JSON.parse(ss.get("rr.skipped") || "[]"); } catch { return []; } }
+  async function skip() {
+    if (current) ss.set("rr.skipped", JSON.stringify([...skippedList().filter(x => x !== current.item_id), current.item_id].slice(-300)));
+    try { await loadNext(current?.item_id); } catch (e) { showError(e); }
+  }
   async function undo() {
     const j = await api("undo");
     if (!j.ok) { alertBar(ERR[j.error] || j.error); return; }
