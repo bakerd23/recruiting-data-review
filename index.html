@@ -421,7 +421,9 @@
                           next: mode !== "resolve", tool: view, src: srcNow() });
     if (!j.ok) { st.textContent = ERR[j.error] || j.error; return; }
     st.textContent = "Saved.";
-    if (mode === "resolve") { refreshCounts(); showEscalated(); } else showItem(j.next || { ok: true, item: null });
+    if (mode === "resolve") { refreshCounts(); showEscalated(); }
+    else if (j.next) showItem(j.next);
+    else { refreshCounts(); loadNext(); }        // a server that hasn't been updated yet doesn't send the next item
   }
   async function skip() { try { await loadNext(current?.item_id); } catch (e) { showError(e); } }
   async function undo() {
