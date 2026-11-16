@@ -377,7 +377,8 @@ function setupTabs() { Object.keys(H).forEach(name => sheet_(name)); }
 function clearTestRows() {
   ['Decisions', 'Claims'].forEach(name => {
     const sh = sheet_(name), n = sh.getLastRow() - 1;
-    if (n > 0) sh.deleteRows(2, n);
-    Logger.log(name + ': removed ' + Math.max(n, 0) + ' row(s)');
+    // Sheets won't delete every row under a frozen header, so empty them instead (the tab then counts as empty)
+    if (n > 0) sh.getRange(2, 1, n, sh.getMaxColumns()).clearContent();
+    Logger.log(name + ': cleared ' + Math.max(n, 0) + ' row(s)');
   });
 }
