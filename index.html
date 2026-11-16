@@ -110,8 +110,9 @@
     catch { return false; }
   }
   async function api(action, extra = {}) {
+    if (token && tokenExpired(token) && !LOCAL) await renew();      // quiet renewal while the Google account is still signed in
     if (!token || tokenExpired(token)) {
-      const m = token ? "Your sign-in expired (they last 1 hour). Please sign in again." : "Please sign in.";
+      const m = token ? "Your sign-in expired. Please sign in again." : "Please sign in.";
       signOut(m); throw new SignInNeeded(m);
     }
     let r, text;
@@ -123,7 +124,10 @@
     let j;
     try { j = JSON.parse(text); }
     catch { console.error("not JSON", r.status, text.slice(0, 500)); throw new Error(`The server answered with something unexpected (HTTP ${r.status}).`); }
-    if (!j.ok && (j.error === "not_signed_in")) { const m = j.detail ? "Sign-in failed: " + j.detail + ". Please sign in again." : "Your sign-in expired. Please sign in again."; signOut(m); throw new SignInNeeded(m); }
+    if (!j.ok && (j.error === "not_signed_in")) {
+      if (!extra._retried && !LOCAL && await renew()) return api(action, { ...extra, _retried: true });
+      const m = j.detail ? "Sign-in failed: " + j.detail + ". Please sign in again." : "Your sign-in expired. Please sign in again."; signOut(m); throw new SignInNeeded(m);
+    }
     if (!j.ok && j.error === "not_on_reviewer_list") { const m = `${j.email} is not on the reviewer list. Ask the project team to add you.`; signOut(m); throw new SignInNeeded(m); }
     return j;
   }
@@ -132,9 +136,43 @@
                 not_allowed: "Your role can't do that.", server_error: "Something went wrong on the server." };
 
   // ------------------------------------------------------------------ sign-in
-  function signOut(msg) {
+  // Staying signed in: Google's automatic sign-in (auto_select) gives a fresh token with no click while the
+  // person is still signed in to the same Google account in this browser and has used the site before.
+  // Signing out with the button turns it off until they sign in again.
+  let gisReady = null, renewing = null, onRenewed = null;
+  function loadGis() {
+    if (gisReady) return gisReady;
+    gisReady = new Promise((resolve, reject) => {
+      const s = el("script", { src: "https://accounts.google.com/gsi/client", async: true });
+      s.onload = () => {
+        google.accounts.id.initialize({ client_id: CFG.clientId, auto_select: true, use_fedcm_for_prompt: true,
+          cancel_on_tap_outside: false, callback: gotCredential });
+        resolve();
+      };
+      s.onerror = () => { gisReady = null; reject(new Error("Couldn't load Google sign-in.")); };
+      document.head.append(s);
+    });
+    return gisReady;
+  }
+  function gotCredential(resp) {
+    token = resp.credential; ss.set("rr.token", token); ss.del("rr.signedOut");
+    if (onRenewed) { const f = onRenewed; onRenewed = null; f(true); } else start();
+  }
+  // Ask Google for a fresh token without a click. Resolves true when one arrived.
+  function renew() {
+    if (!CFG.clientId) return Promise.resolve(false);
+    if (renewing) return renewing;
+    renewing = loadGis().then(() => new Promise(resolve => {
+      const done = (ok) => { clearTimeout(timer); onRenewed = null; resolve(ok); };
+      const timer = setTimeout(() => done(false), 20000);
+      onRenewed = done;
+      google.accounts.id.prompt(n => { try { if (n.isNotDisplayed?.() || n.isSkippedMoment?.() || n.isDismissedMoment?.()) done(false); } catch {} });
+    })).catch(() => false).finally(() => { renewing = null; });
+    return renewing;
+  }
+  function signOut(msg, byButton) {
     token = null; me = null; ss.del("rr.token");
-    if (window.google?.accounts?.id) google.accounts.id.disableAutoSelect();
+    if (byButton) { ss.set("rr.signedOut", "1"); if (window.google?.accounts?.id) google.accounts.id.disableAutoSelect(); }
     showSignIn(msg);
   }
   function showSignIn(msg) {
@@ -150,14 +188,10 @@
       return;
     }
     if (!CFG.clientId) { box.append(el("p", { class: "banner", text: "This copy of the site isn't connected yet (config.js has no client ID)." })); return; }
-    const draw = () => google.accounts.id.renderButton($("#gbtn"), { theme: "outline", size: "large", text: "signin_with" });
-    if (window.google?.accounts?.id) return draw();          // Google's library is set up once per page
-    const s = el("script", { src: "https://accounts.google.com/gsi/client", async: true });
-    s.onload = () => {
-      google.accounts.id.initialize({ client_id: CFG.clientId, callback: (resp) => { token = resp.credential; ss.set("rr.token", token); start(); } });
-      draw();
-    };
-    document.head.append(s);
+    loadGis().then(() => {
+      google.accounts.id.renderButton($("#gbtn"), { theme: "outline", size: "large", text: "signin_with" });
+      if (!ss.get("rr.signedOut")) google.accounts.id.prompt();   // signs straight back in when Google allows it
+    }).catch(e => box.append(el("p", { class: "banner", text: e.message })));
   }
 
   // ------------------------------------------------------------------ start + header
@@ -501,7 +535,7 @@
   // ------------------------------------------------------------------ wiring
   $("#toolSel").addEventListener("change", async (e) => { if (current && TOOLS[view]) { try { await api("release", { item_id: current.item_id }); } catch {} } open(e.target.value); });
   $("#undoBtn").addEventListener("click", undo);
-  $("#outBtn").addEventListener("click", () => signOut());
+  $("#outBtn").addEventListener("click", () => signOut("You signed out.", true));
   addEventListener("keydown", (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) { e.preventDefault(); undo(); return; }
     if (!current || /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) || e.ctrlKey || e.metaKey || e.altKey) return;
