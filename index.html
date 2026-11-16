@@ -161,7 +161,7 @@
     const review = el("optgroup", { label: "Review" });
     for (const [k, v] of Object.entries(TOOLS)) review.append(el("option", { value: k, text: v }));
     const more = el("optgroup", { label: "More" });
-    if (me.role === "senior" || me.role === "admin") more.append(el("option", { value: "escalated", text: "Needs review (seniors)" }));
+    if (me.role === "senior" || me.role === "admin") more.append(el("option", { value: "escalated", text: "Senior review queue" }));
     if (me.role === "admin") more.append(el("option", { value: "reviewers", text: "Manage reviewers" }));
     more.append(el("option", { value: "mine", text: "My decisions" }));
     sel.append(review, more);
@@ -227,7 +227,7 @@
     }
     const title = cur.tool === "dup" ? `Two ${it.source || ""} profiles: one player or two?` : "Two profiles from different sites: one player or two?";
     const card = el("section", { class: "card" }, el("h2", { text: title }),
-      el("div", { class: "why" }, el("b", { text: "Why this pair is here: " }), it.why || ""),
+      el("div", { class: "why" }, el("b", { text: "Why this pair is here: " }), plainWhy(it.why || "")),
       el("table", { class: "cmp" }, el("thead", {}, el("tr", {}, el("th", {}), el("th", { text: `${A.Source || "A"} · ${A.Record || ""}` }),
                                                                    el("th", { text: `${B.Source || "B"} · ${B.Record || ""}` }))), tb),
       el("h3", { text: "Private details (shown only as match / no match)" }),
@@ -236,6 +236,11 @@
            `${k}: ${v === "same" ? "match" : v === "different" ? "no match" : v === "not in source" ? "not in this source" : "missing"}`))),
       it.conflicts ? el("p", { class: "small" }, el("b", { text: "Differs: " }), it.conflicts) : null);
     main.replaceChildren(card, aiBox(pairPrompt(cur)), decisionBox(cur, mode));
+  }
+  // "Model score 0.43; shared: ..." -> words a reviewer can read without the instructions
+  function plainWhy(w) {
+    return w.replace(/Model score ([0-9.]+)/, (m, x) => `Match score ${Number(x).toFixed(2)} out of 1 (higher means more likely the same player)`)
+            .replace(/; differs: /, ". Differs: ").replace(/; shared: /, ". Shared: ");
   }
   function pairPrompt(cur) {
     const it = cur.item, show = (r) => Object.entries(r).filter(([k]) => !["key"].includes(k)).map(([k, v]) => `  ${k}: ${v}`).join("\n");
@@ -277,7 +282,7 @@
       el("div", { id: "picked" }), el("div", { class: "reasons", id: "reasons" }),
       el("textarea", { id: "note", placeholder: "Note: what you found, with a link" }),
       el("div", { class: "row", style: "margin-top:10px" },
-        el("button", { class: "btn primary", id: "saveBtn", type: "button", disabled: true, onclick: () => save(cur, mode) }, "Save & next"),
+        el("button", { class: "btn primary", id: "saveBtn", type: "button", disabled: true, onclick: () => save(cur, mode) }, mode === "resolve" ? "Save & back to list" : "Save & next"),
         mode === "resolve" ? null : el("button", { class: "btn", type: "button", onclick: skip }, "Skip"),
         el("span", { class: "status", id: "saveStatus" })),
       el("p", { class: "small muted", text: isHs
@@ -434,32 +439,35 @@
 
   // ------------------------------------------------------------------ seniors, admin, my decisions
   async function showEscalated() {
-    main.replaceChildren(el("p", { class: "muted", text: "Loading items that need review…" }));
+    main.replaceChildren(el("p", { class: "muted", text: "Loading the senior review queue…" }));
     const j = await api("escalated");
     if (!j.ok) return main.replaceChildren(el("p", { class: "banner", text: ERR[j.error] || j.error }));
-    if (!j.rows.length) return main.replaceChildren(el("div", { class: "card" }, el("h2", { text: "Nothing needs review" })));
+    if (!j.rows.length) return main.replaceChildren(el("div", { class: "card" }, el("h2", { text: "The senior review queue is empty" }),
+      el("p", { class: "muted", text: "Items a reviewer marks Needs review show up here." })));
     const tb = el("tbody");
     j.rows.forEach(r => tb.append(el("tr", {}, el("td", { text: TOOLS[r.tool] }),
       el("td", { text: r.tool === "hs" ? r.item.school?.name : `${r.item.a?.["First name"] || r.item.a?.Name || ""} ${r.item.a?.["Last name"] || ""} / ${r.item.b?.["First name"] || r.item.b?.Name || ""} ${r.item.b?.["Last name"] || ""}` }),
       el("td", { text: r.note || "" }),
       el("td", {}, el("button", { class: "btn", onclick: () => { current = { item_id: r.item_id, item: r.item, tool: r.tool, note: r.note }; render(current, "resolve"); } }, "Open")))));
-    main.replaceChildren(el("section", { class: "card" }, el("h2", { text: "Needs review" }),
-      el("p", { class: "small muted", text: "Items reviewers couldn't decide. Your answer is final." }),
+    main.replaceChildren(el("section", { class: "card" }, el("h2", { text: "Senior review queue" }),
+      el("p", { class: "small muted", text: "Items reviewers marked Needs review. Your answer is final." }),
       el("table", { class: "list" }, el("thead", {}, el("tr", {}, el("th", { text: "Tool" }), el("th", { text: "Item" }), el("th", { text: "Reviewer's note" }), el("th"))), tb)));
   }
   async function showReviewers() {
     const j = await api("reviewers");
     if (!j.ok) return main.replaceChildren(el("p", { class: "banner", text: ERR[j.error] || j.error }));
+    const em = el("input", { type: "email", id: "revEmail", placeholder: "name@example.com" }), nm = el("input", { type: "text", id: "revName", placeholder: "Name" });
+    const rl = el("select", { class: "f", id: "revRole" }, ...["intern", "senior", "admin"].map(x => el("option", { value: x, text: x })));
     const tb = el("tbody");
     j.rows.forEach(r => tb.append(el("tr", {}, el("td", { text: r.email }), el("td", { text: r.name }), el("td", { text: r.role }),
       el("td", { text: r.active ? "active" : "removed" }), el("td", { text: r.added_by }),
-      el("td", {}, el("button", { class: "btn", onclick: () => setRev(r.email, r.role, !r.active, r.name, r.note) }, r.active ? "Remove access" : "Restore")))));
-    const em = el("input", { type: "email", placeholder: "name@example.com" }), nm = el("input", { type: "text", placeholder: "Name" });
-    const rl = el("select", { class: "f" }, ...["intern", "senior", "admin"].map(x => el("option", { value: x, text: x })));
+      el("td", {}, el("div", { class: "row" },
+        el("button", { class: "btn", onclick: () => { em.value = r.email; nm.value = r.name; rl.value = r.role; em.readOnly = true; nm.focus(); } }, "Edit"),
+        el("button", { class: "btn", onclick: () => setRev(r.email, r.role, !r.active, r.name, r.note) }, r.active ? "Remove access" : "Restore"))))));
     main.replaceChildren(el("section", { class: "card" }, el("h2", { text: "Reviewers" }),
       el("p", { class: "small muted", text: "Only people on this list can sign in. Interns review; seniors also decide items marked Needs review; admins also manage this list. Every change is logged." }),
       el("table", { class: "list" }, el("thead", {}, el("tr", {}, ...["Email", "Name", "Role", "Access", "Added by", ""].map(h => el("th", { text: h })))), tb),
-      el("h3", { text: "Add or change a reviewer" }),
+      el("h3", { text: "Add a reviewer, or change one (click Edit on their row)" }),
       el("div", { class: "row" }, em, nm, rl, el("button", { class: "btn primary", onclick: () => setRev(em.value, rl.value, true, nm.value, "") }, "Save"))));
   }
   async function setRev(email, role, active, name, note) {
