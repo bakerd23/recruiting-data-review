@@ -19,7 +19,7 @@
   .toolpick label { font-size:12px; text-transform:uppercase; letter-spacing:.08em; opacity:.8 }
   header select { appearance:none; -webkit-appearance:none; font:600 14px var(--body); color:#fff; cursor:pointer;
     background:rgba(255,255,255,.12) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 12px center;
-    border:1px solid rgba(255,255,255,.35); border-radius:999px; padding:6px 34px 6px 14px; min-width:220px }
+    border:1px solid rgba(255,255,255,.35); border-radius:999px; padding:6px 32px 6px 13px; min-width:170px }
   header select:hover { background-color:rgba(255,255,255,.2) }
   header select:focus-visible { outline:2px solid var(--accent2); outline-offset:2px }
   header select option, header select optgroup { color:#1d1d1f; background:#fff; font-weight:500 }
@@ -70,6 +70,8 @@
   .actbar.top { position:sticky; top:0; z-index:5; box-shadow:0 2px 6px rgba(0,0,0,.06) }
   .actbar .keys { font-size:12px; color:var(--muted); margin-left:auto }
   .actbar .sep { width:1px; align-self:stretch; background:var(--line) }
+  .actbar .noteIn { flex:1 1 260px; min-width:200px; width:auto }
+  .actbar .noteIn.need { border-color:var(--accent2); background:#fff8ef }
   /* wide screens: details on the left, everything else on the right, so an item fits without scrolling */
   .itemgrid { display:grid; grid-template-columns:minmax(0, 1.6fr) minmax(320px, 1fr); gap:12px; align-items:start; margin-bottom:12px }
   @media (max-width:980px) { .itemgrid { grid-template-columns:1fr } }
@@ -147,7 +149,7 @@
     roleCheck(j);
     return j;
   }
-  const ERR = { already_decided: "Someone already finished this item.", reserved_by_someone_else: "Another reviewer has this item open.",
+  const ERR = { note_required: "Needs review needs a note: say what you found.", already_decided: "Someone already finished this item.", reserved_by_someone_else: "Another reviewer has this item open.",
                 nothing_to_undo: "Nothing to undo.", already_resolved_by_senior: "A senior reviewer already made the final call on that item.",
                 not_allowed: "Your role can't do that.", server_error: "Something went wrong on the server." };
 
@@ -297,6 +299,7 @@
     render(current, "decide");
   }
   function render(cur, mode) {
+    choice = null;                      // a new item starts with nothing picked and an empty, optional note
     if (cur.tool === "hs") return renderSchool(cur, mode);
     return renderPair(cur, mode);
   }
@@ -377,9 +380,8 @@
     if (mode === "resolve" && cur.note) box.append(el("p", { class: "banner" }, el("b", { text: "Reviewer's note: " }), cur.note));
     box.append(
       el("div", { id: "picked" }, el("p", { class: "small muted", style: "margin:0",
-        text: mode === "resolve" ? "Pick the final answer in the bar above or below." : "Pick a choice in the bar above or below. Can't tell? Needs review: a senior makes the call." })),
-      el("div", { class: "reasons", id: "reasons" }),
-      el("textarea", { id: "note", placeholder: "Note: what you found, with a link" }));
+        text: mode === "resolve" ? "Pick the final answer in the bar above or below." : "Pick a choice in the bar above or below. Can't tell? Needs review (a note is required): a senior makes the call." })),
+      el("div", { class: "reasons", id: "reasons" }));
     return box;
   }
   // The choices + Save bar. Drawn twice (above and below the item); both stay in step.
@@ -397,8 +399,26 @@
     return el("div", { class: "actbar " + pos }, ch, el("span", { class: "sep" }),
       el("button", { class: "btn primary saveBtn", type: "button", disabled: true, onclick: () => save(cur, mode) }, mode === "resolve" ? "Save & back to list" : "Save & next"),
       mode === "resolve" ? null : el("button", { class: "btn", type: "button", onclick: skip }, "Skip"),
+      noteBox(),
       el("span", { class: "status saveStatus" }),
       el("span", { class: "keys", text: isHs ? "1-6 pick a suggestion · Enter save · Ctrl+Z undo" : "Enter save · Ctrl+Z undo" }));
+  }
+  // The note box sits in both bars and they stay in step. Optional, except for Needs review.
+  function noteBox() {
+    const inp = el("input", { type: "text", class: "noteIn", maxlength: "2000", "aria-label": "Note",
+      placeholder: noteNeeded() ? "Note required: what you found, with a link" : "Note (optional): only if something matters" });   // each item starts empty
+    if (noteNeeded()) inp.classList.add("need");
+    inp.addEventListener("input", () => { document.querySelectorAll(".noteIn").forEach(x => { if (x !== inp) x.value = inp.value; }); ready(); });
+    inp.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); const b = document.querySelector(".saveBtn"); if (b && !b.disabled) b.click(); } });
+    return inp;
+  }
+  const noteNeeded = () => choice === "needs_review";
+  const noteText = () => (document.querySelector(".noteIn")?.value || "").trim();
+  function notePrompt() {
+    document.querySelectorAll(".noteIn").forEach(x => {
+      x.classList.toggle("need", noteNeeded());
+      x.placeholder = noteNeeded() ? "Note required: what you found, with a link" : "Note (optional): only if something matters";
+    });
   }
   function pick(cur, v) {
     choice = v;
@@ -409,7 +429,11 @@
     if (cur.tool === "hs") hsPicked(cur, v);
     ready();
   }
-  function ready() { const off = !choice || (current?.tool === "hs" && !hsReady()); document.querySelectorAll(".saveBtn").forEach(b => b.disabled = off); }
+  function ready() {
+    notePrompt();
+    const off = !choice || (current?.tool === "hs" && !hsReady()) || (noteNeeded() && !noteText());
+    document.querySelectorAll(".saveBtn").forEach(b => b.disabled = off);
+  }
   async function save(cur, mode) {
     if (!choice) return;
     const sts = [...document.querySelectorAll(".saveStatus")], st = { set textContent(t) { sts.forEach(x => x.textContent = t); } };
@@ -417,7 +441,7 @@
     const details = { reasons: [...document.querySelectorAll("#reasons input:checked")].map(i => i.value), ...(cur.tool === "hs" ? hsDetails() : {}),
                       item_label: itemLabel(cur), answer_label: answerLabel(cur) };
     const j = await api(mode === "resolve" ? "resolve" : "decide",
-                        { item_id: cur.item_id, decision: choice, details, note: ($("#note").value || "").trim(),
+                        { item_id: cur.item_id, decision: choice, details, note: noteText(),
                           next: mode !== "resolve", tool: view, src: srcNow() });
     if (!j.ok) { st.textContent = ERR[j.error] || j.error; return; }
     st.textContent = "Saved.";

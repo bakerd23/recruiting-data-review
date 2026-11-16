@@ -237,6 +237,7 @@ function act_(body, u) {
     if (!q) return { ok: false, error: 'no_item' };
     if (DECISIONS[q.tool].indexOf(body.decision) < 0 || (a === 'resolve' && body.decision === 'needs_review'))
       return { ok: false, error: 'bad_decision' };
+    if (body.decision === 'needs_review' && !String(body.note || '').trim()) return { ok: false, error: 'note_required' };   // notes: optional, except Needs review
     const byItem = decisionsByItem_(), st = itemState_(byItem[q.id]);
     if (a === 'decide') {
       const claims = activeClaims_();
