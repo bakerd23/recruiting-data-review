@@ -371,3 +371,13 @@ function doGet() { return json_({ ok: true, service: 'recruiting-data-review' })
 // One-time setup: run this once from the Apps Script editor (select setupTabs, click Run).
 // It creates the five tabs with their header rows. Then add yourself to Reviewers.
 function setupTabs() { Object.keys(H).forEach(name => sheet_(name)); }
+
+// One-time cleanup before reviewers start: run this from the Apps Script editor (select clearTestRows, click Run).
+// Empties Decisions and Claims (keeps their header rows). Reviewers, Queue and AdminLog are not touched.
+function clearTestRows() {
+  ['Decisions', 'Claims'].forEach(name => {
+    const sh = sheet_(name), n = sh.getLastRow() - 1;
+    if (n > 0) sh.deleteRows(2, n);
+    Logger.log(name + ': removed ' + Math.max(n, 0) + ' row(s)');
+  });
+}
