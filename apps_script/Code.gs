@@ -297,9 +297,12 @@ function act_(body, u) {
 
   if (a === 'hs_index') {
     const sh = sheet_('Queue'), idx = queueIndex_().filter(q => q.tool === 'hs');
-    const vals = idx.length ? sh.getRange(2, 5, sh.getLastRow() - 1, 1).getValues() : [];
-    return { ok: true, rows: idx.map(q => { const p = JSON.parse(String(vals[q.row - 2][0] || '{}'));
-      return { id: q.id, name: p.name, city: p.city, state: p.state, source: p.source }; }) };
+    if (!idx.length) return { ok: true, rows: [] };
+    // read only the rows that hold schools, not the (much larger) pair payloads
+    const lo = Math.min.apply(null, idx.map(q => q.row)), hi = Math.max.apply(null, idx.map(q => q.row));
+    const vals = sh.getRange(lo, 5, hi - lo + 1, 1).getValues();
+    return { ok: true, rows: idx.map(q => { let s = {}; try { const p = JSON.parse(String(vals[q.row - lo][0] || '{}')); s = p.school || p; } catch (e) {}
+      return { id: q.id, name: s.name, city: s.city, state: s.state, source: s.source }; }) };
   }
 
   if (a === 'escalated') {
