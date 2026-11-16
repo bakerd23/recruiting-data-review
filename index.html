@@ -13,7 +13,16 @@
   body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 var(--body) }
   header { background:var(--accent); color:#fff; padding:10px 16px; display:flex; flex-wrap:wrap; gap:10px 16px; align-items:center }
   header h1 { font:600 18px var(--display); margin:0 8px 0 0; letter-spacing:.02em }
-  header select, header button { font:inherit; font-size:14px }
+  header button { font:inherit; font-size:14px }
+  /* tool picker: a pill that belongs to the maroon header instead of a default white box */
+  .toolpick { display:flex; align-items:center; gap:8px }
+  .toolpick label { font-size:12px; text-transform:uppercase; letter-spacing:.08em; opacity:.8 }
+  header select { appearance:none; -webkit-appearance:none; font:600 14px var(--body); color:#fff; cursor:pointer;
+    background:rgba(255,255,255,.12) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 12px center;
+    border:1px solid rgba(255,255,255,.35); border-radius:999px; padding:6px 34px 6px 14px; min-width:220px }
+  header select:hover { background-color:rgba(255,255,255,.2) }
+  header select:focus-visible { outline:2px solid var(--accent2); outline-offset:2px }
+  header select option, header select optgroup { color:#1d1d1f; background:#fff; font-weight:500 }
   header .who { margin-left:auto; font-size:13px; opacity:.9 }
   header button.light { background:transparent; color:#fff; border:1px solid rgba(255,255,255,.6); border-radius:6px; padding:4px 10px; cursor:pointer }
   main { max-width:1180px; margin:0 auto; padding:16px }
@@ -59,7 +68,7 @@
 <body>
 <header>
   <h1>Recruiting Data Review</h1>
-  <select id="toolSel" aria-label="Choose a tool" hidden></select>
+  <div class="toolpick" id="toolPick" hidden><label for="toolSel">Tool</label><select id="toolSel"></select></div>
   <span id="progress" class="small"></span>
   <button class="light" id="undoBtn" hidden title="Undo your last decision (Ctrl+Z)">Undo last decision</button>
   <span class="who" id="who"></span>
@@ -118,7 +127,7 @@
     showSignIn(msg);
   }
   function showSignIn(msg) {
-    $("#toolSel").hidden = true; $("#undoBtn").hidden = true; $("#outBtn").hidden = true; $("#who").textContent = ""; $("#progress").textContent = "";
+    $("#toolPick").hidden = true; $("#undoBtn").hidden = true; $("#outBtn").hidden = true; $("#who").textContent = ""; $("#progress").textContent = "";
     const box = el("div", { class: "card signin" }, el("h2", { text: "Sign in to Recruiting Data Review" }),
       el("p", { class: "muted", text: "Only reviewers on the approved list can see the review items." }),
       msg ? el("p", { class: "banner", text: msg }) : null, el("div", { id: "gbtn" }));
@@ -148,11 +157,14 @@
     me = j;
     $("#who").textContent = `${me.name || me.email} · ${me.role}`;
     $("#outBtn").hidden = false; $("#undoBtn").hidden = false;
-    const sel = $("#toolSel"); sel.replaceChildren(); sel.hidden = false;
-    for (const [k, v] of Object.entries(TOOLS)) sel.append(el("option", { value: k, text: v }));
-    if (me.role === "senior" || me.role === "admin") sel.append(el("option", { value: "escalated", text: "Needs review (seniors)" }));
-    if (me.role === "admin") sel.append(el("option", { value: "reviewers", text: "Reviewers (admin)" }));
-    sel.append(el("option", { value: "mine", text: "My decisions" }));
+    const sel = $("#toolSel"); sel.replaceChildren(); $("#toolPick").hidden = false;
+    const review = el("optgroup", { label: "Review" });
+    for (const [k, v] of Object.entries(TOOLS)) review.append(el("option", { value: k, text: v }));
+    const more = el("optgroup", { label: "More" });
+    if (me.role === "senior" || me.role === "admin") more.append(el("option", { value: "escalated", text: "Needs review (seniors)" }));
+    if (me.role === "admin") more.append(el("option", { value: "reviewers", text: "Manage reviewers" }));
+    more.append(el("option", { value: "mine", text: "My decisions" }));
+    sel.append(review, more);
     if (![...sel.options].some(o => o.value === view)) view = "dup";
     sel.value = view;
     open(view);
