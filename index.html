@@ -112,11 +112,16 @@
   };
   const ss = { get(k) { try { return sessionStorage.getItem(k) } catch { return null } }, set(k, v) { try { sessionStorage.setItem(k, v) } catch {} },
                del(k) { try { sessionStorage.removeItem(k) } catch {} } };
+  // the site's sign-in pass is kept in this browser (lasts 7 days), so closing the tab doesn't sign you out
+  const ls = { get(k) { try { return localStorage.getItem(k) } catch { return null } }, set(k, v) { try { localStorage.setItem(k, v) } catch {} },
+               del(k) { try { localStorage.removeItem(k) } catch {} } };
   const main = $("#main");
 
+  const ROLE_LABEL = { intern: "Intern", senior: "Senior", admin: "Admin" };   // how roles are shown (stored lowercase)
+  const roleLabel = (r) => ROLE_LABEL[r] || r;
   const TOOLS = { hs: "High schools", dup: "Duplicates in one source", pair: "Cross-source pairs" };
   const NOUN = { hs: "school", dup: "pair", pair: "pair" };
-  let token = ss.get("rr.token"), me = null, view = ss.get("rr.view") || "dup", current = null, ceeb = null, hsIndex = null;
+  let token = ls.get("rr.session") || ss.get("rr.token"), me = null, view = ss.get("rr.view") || "dup", current = null, ceeb = null, hsIndex = null;
 
   // ------------------------------------------------------------------ API
   class SignInNeeded extends Error {}
@@ -141,6 +146,7 @@
     let j;
     try { j = JSON.parse(text); }
     catch { console.error("not JSON", r.status, text.slice(0, 500)); throw new Error(`The server answered with something unexpected (HTTP ${r.status}).`); }
+    if (j.session) { token = j.session; ls.set("rr.session", token); ss.del("rr.token"); }   // the site's own longer pass
     if (!j.ok && (j.error === "not_signed_in")) {
       if (!extra._retried && !LOCAL && await renew()) return api(action, { ...extra, _retried: true });
       const m = j.detail ? "Sign-in failed: " + j.detail + ". Please sign in again." : "Your sign-in expired. Please sign in again."; signOut(m); throw new SignInNeeded(m);
@@ -189,7 +195,7 @@
     return renewing;
   }
   function signOut(msg, byButton) {
-    token = null; me = null; ss.del("rr.token");
+    token = null; me = null; ss.del("rr.token"); ls.del("rr.session");
     if (byButton) { ss.set("rr.signedOut", "1"); if (window.google?.accounts?.id) google.accounts.id.disableAutoSelect(); }
     showSignIn(msg);
   }
@@ -225,7 +231,7 @@
   }
   // Name, role and the Tool menu for the current role. Rebuilt when an admin changes this person's role.
   function buildMenu() {
-    $("#who").textContent = `${me.name || me.email} · ${me.role}`;
+    $("#who").textContent = `${me.name || me.email} · ${roleLabel(me.role)}`;
     const sel = $("#toolSel"); sel.replaceChildren(); $("#toolPick").hidden = false;
     const review = el("optgroup", { label: "Review" });
     for (const [k, v] of Object.entries(TOOLS)) review.append(el("option", { value: k, text: v }));
@@ -245,7 +251,7 @@
     me.role = j.you.role; me.name = j.you.name;
     buildMenu();
     if (lost) { view = "dup"; $("#toolSel").value = view; open(view); }
-    alertBar(`Your role is now ${me.role}.`);
+    alertBar(`Your role is now ${roleLabel(me.role)}.`);
   }
   // The "x of y done" line: refreshed with every save/skip, and every 90 seconds while this tab is open,
   // so other reviewers' work shows up too.
@@ -626,10 +632,10 @@
     const j = await api("reviewers");
     if (!j.ok) return main.replaceChildren(el("p", { class: "banner", text: ERR[j.error] || j.error }));
     const em = el("input", { type: "email", id: "revEmail", placeholder: "name@example.com" }), nm = el("input", { type: "text", id: "revName", placeholder: "Name" });
-    const rl = el("select", { class: "f", id: "revRole" }, ...["intern", "senior", "admin"].map(x => el("option", { value: x, text: x })));
+    const rl = el("select", { class: "f", id: "revRole" }, ...["intern", "senior", "admin"].map(x => el("option", { value: x, text: roleLabel(x) })));
     const tb = el("tbody");
     const n = (r, k) => (r.counts?.[k] || 0).toLocaleString();
-    j.rows.forEach(r => tb.append(el("tr", {}, el("td", { text: r.email }), el("td", { text: r.name }), el("td", { text: r.role }),
+    j.rows.forEach(r => tb.append(el("tr", {}, el("td", { text: r.email }), el("td", { text: r.name }), el("td", { text: roleLabel(r.role) }),
       el("td", { text: r.active ? "active" : "removed" }),
       el("td", { class: "num", text: n(r, "hs") }), el("td", { class: "num", text: n(r, "dup") }), el("td", { class: "num", text: n(r, "pair") }),
       el("td", { class: "num", text: n(r, "needs_review") }), el("td", { class: "num", text: n(r, "final") }),

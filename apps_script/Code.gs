@@ -104,8 +104,33 @@ function iso_(d) { return (d instanceof Date ? d : new Date(d || Date.now())).to
 // ---------------------------------------------------------------- sign-in
 // Returns {email} when the Google sign-in token is valid, else {why} (shown to the person signing in;
 // nothing secret in it: the client ID is public).
+// The site's own sign-in pass: issued after a good Google sign-in, so reviewers aren't sent back to Google every
+// hour. Signed with a secret only this script knows (Script Property SESSION_SECRET, made on first use).
+// Removing someone from the reviewer list still locks them out at once: the list is checked on every request.
+const SESSION_DAYS = 7;
+function secret_() {
+  const p = PropertiesService.getScriptProperties();
+  let s = p.getProperty('SESSION_SECRET');
+  if (!s) { s = Utilities.getUuid() + Utilities.getUuid(); p.setProperty('SESSION_SECRET', s); }
+  return s;
+}
+function sign_(payload) { return Utilities.base64EncodeWebSafe(Utilities.computeHmacSha256Signature(payload, secret_())); }
+function makeSession_(email) {
+  const payload = Utilities.base64EncodeWebSafe(JSON.stringify({ email: email, exp: Math.floor(Date.now() / 1000) + SESSION_DAYS * 86400 }));
+  return 'rrs1.' + payload + '.' + sign_(payload);
+}
+function checkSession_(token) {
+  const parts = token.split('.');
+  if (parts.length !== 3 || sign_(parts[1]) !== parts[2]) return { why: 'the sign-in pass is not valid' };
+  let p;
+  try { p = JSON.parse(Utilities.newBlob(Utilities.base64DecodeWebSafe(parts[1])).getDataAsString()); } catch (e) { return { why: 'the sign-in pass is not valid' }; }
+  if (Number(p.exp) * 1000 < Date.now()) return { why: 'the sign-in pass has expired' };
+  return { email: String(p.email).toLowerCase(), session: true };
+}
+
 function verify_(token) {
   if (!token) return { why: 'no sign-in token was sent' };
+  if (String(token).indexOf('rrs1.') === 0) return checkSession_(String(token));
   const cache = CacheService.getScriptCache();
   const key = 'tok_' + Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, token)).slice(0, 40);
   const hit = cache.get(key);
@@ -355,14 +380,15 @@ function doPost(e) {
   if (!u) return json_({ ok: false, error: 'not_on_reviewer_list', email: email });
   MEMO_ = {};
   const you = { role: u.role, name: u.name };
+  const fresh = v.session ? null : makeSession_(email);   // signed in with Google just now: hand out the site's pass
   // Read-only requests (progress counts, My decisions, lists) don't change anything, so they don't wait in line.
   if (READ_ONLY.indexOf(body.action) >= 0) {
-    try { const out = act_(body, u); out.you = you; return json_(out); }
+    try { const out = act_(body, u); out.you = you; if (fresh) out.session = fresh; return json_(out); }
     catch (err) { return json_({ ok: false, error: 'server_error', detail: String(err).slice(0, 300) }); }
   }
   const lock = LockService.getScriptLock();          // one change at a time (reservations, decisions)
   lock.waitLock(25000);
-  try { const out = act_(body, u); out.you = you; return json_(out); }
+  try { const out = act_(body, u); out.you = you; if (fresh) out.session = fresh; return json_(out); }
   catch (err) { return json_({ ok: false, error: 'server_error', detail: String(err).slice(0, 300) }); }
   finally { lock.releaseLock(); }
 }
