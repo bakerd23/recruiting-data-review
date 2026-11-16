@@ -128,7 +128,7 @@
       if (!extra._retried && !LOCAL && await renew()) return api(action, { ...extra, _retried: true });
       const m = j.detail ? "Sign-in failed: " + j.detail + ". Please sign in again." : "Your sign-in expired. Please sign in again."; signOut(m); throw new SignInNeeded(m);
     }
-    if (!j.ok && j.error === "not_on_reviewer_list") { const m = `${j.email} is not on the reviewer list. Ask the project team to add you.`; signOut(m); throw new SignInNeeded(m); }
+    if (!j.ok && j.error === "not_on_reviewer_list") { const m = `${j.email} is not on the reviewer list. Ask an admin to add you.`; signOut(m); throw new SignInNeeded(m); }
     return j;
   }
   const ERR = { already_decided: "Someone already finished this item.", reserved_by_someone_else: "Another reviewer has this item open.",
