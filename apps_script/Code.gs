@@ -398,6 +398,7 @@ function doGet() { return json_({ ok: true, service: 'recruiting-data-review' })
 // It creates the five tabs with their header rows. Then add yourself to Reviewers.
 function setupTabs() { Object.keys(H).forEach(name => sheet_(name)); }
 
+// !! DO NOT RUN while reviewers are working: it erases real decisions. (Reviewers started Nov 16, 2026.) !!
 // One-time cleanup before reviewers start: run this from the Apps Script editor (select clearTestRows, click Run).
 // Empties Decisions and Claims (keeps their header rows). Reviewers, Queue and AdminLog are not touched.
 function clearTestRows() {
