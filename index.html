@@ -333,7 +333,7 @@
     }
     const title = cur.tool === "dup" ? `Two ${it.source || ""} profiles: one player or two?` : "Two profiles from different sites: one player or two?";
     const card = el("section", { class: "card" }, el("h2", { text: title }),
-      el("div", { class: "why" }, el("b", { text: "Why this pair is here: " }), plainWhy(it.why || "")),
+      factsBox(it),
       el("table", { class: "cmp" }, el("thead", {}, el("tr", {}, el("th", {}), el("th", { text: colHead(A, it, "A") }),
                                                                    el("th", { text: colHead(B, it, "B") }))), tb),
     );
@@ -351,10 +351,18 @@
     const rec = r.Record || String(r.key || "").split(":").slice(1).join(":");
     return `${r.Source || it.source || "Profile " + letter}${rec ? " · " + rec : ""}`;
   }
-  // "Model score 0.43; shared: ..." -> words a reviewer can read without the instructions
-  function plainWhy(w) {
-    return w.replace(/Model score ([0-9.]+)/, (m, x) => `Match score ${Number(x).toFixed(2)} out of 1 (higher means more likely the same player)`)
-            .replace(/; differs: /, ". Differs: ").replace(/; shared: /, ". Shared: ");
+  // The queue's "why" text is "Model score 0.43; shared: ...; differs: ...". The model score is NEVER shown:
+  // reviewers' answers become retraining labels, so they must judge from the evidence alone.
+  function factsBox(it) {
+    // Items inside a list are ";"-separated too, so split on the labels, not on every ";"
+    const PART = { shared: /shared:\s*(.*?)(?=;\s*differs:|$)/i, differs: /differs:\s*(.*?)(?=;\s*shared:|$)/i };
+    const part = (name) => { const m = String(it.why || "").match(PART[name]); return m ? m[1].trim() : ""; };
+    const tidy = (s) => s.split(/\s*;\s*/).filter(Boolean).join(", ");
+    const shared = part("shared"), differs = part("differs");
+    const rows = [];
+    if (shared) rows.push(el("div", {}, el("b", { text: "What lines up: " }), tidy(shared)));
+    if (differs && tidy(differs) !== tidy(String(it.conflicts || ""))) rows.push(el("div", {}, el("b", { text: "What differs: " }), tidy(differs)));
+    return rows.length ? el("div", { class: "why" }, rows) : null;
   }
   function pairPrompt(cur) {
     const it = cur.item, show = (r) => Object.entries(r).filter(([k]) => !["key"].includes(k)).map(([k, v]) => `  ${k}: ${v}`).join("\n");
