@@ -262,7 +262,7 @@
   }
   function progress() {
     const c = me?.counts?.[view];
-    $("#progress").textContent = c ? `${c.decided + c.escalated} of ${c.total} done · ${c.mine} by you · ${c.escalated} need review` : "";
+    $("#progress").textContent = c ? `${c.decided + c.escalated} of ${c.total} done · ${c.mine} by you · ${c.escalated} waiting for a senior` : "";
   }
   async function refreshCounts() { try { const j = await api("me"); if (j.ok) { me.counts = j.counts; progress(); } } catch {} }
 
@@ -653,9 +653,9 @@
         el("button", { class: "btn", onclick: () => setRev(r.email, r.role, !r.active, r.name, r.note) }, r.active ? "Remove access" : "Restore"))))));
     main.replaceChildren(el("section", { class: "card" }, el("h2", { text: "Reviewers" }),
       el("p", { class: "small muted", text: "Only people on this list can sign in. Interns review; seniors also decide items marked Needs review; admins also manage this list. Every change is logged." }),
-      el("p", { class: "small muted", style: "margin:0 0 6px", text: "Decision counts: decisions in effect (undone ones not counted). Needs review is included in the tool counts; Final = senior calls on Needs review items." }),
+      el("p", { class: "small muted", style: "margin:0 0 6px", text: "Decision counts: decisions in effect (undone ones not counted). Flagged (all time) = times this person chose Needs review, including items a senior has since decided; these are also included in the tool counts. Final = senior calls on flagged items." }),
       el("div", { style: "overflow-x:auto" }, el("table", { class: "list" }, el("thead", {}, el("tr", {},
-        ...["Email", "Name", "Role", "Access", "High schools", "Duplicates", "Cross-source", "Needs review", "Final (senior)", "Total", "Added by", ""].map(h => el("th", { text: h })))), tb)),
+        ...["Email", "Name", "Role", "Access", "High schools", "Duplicates", "Cross-source", "Flagged (all time)", "Final (senior)", "Total", "Added by", ""].map(h => el("th", { text: h })))), tb)),
       el("h3", { text: "Add a reviewer, or change one (click Edit on their row)" }),
       el("div", { class: "row" }, em, nm, rl, el("button", { class: "btn primary", onclick: () => setRev(em.value, rl.value, true, nm.value, "") }, "Save"))));
   }
