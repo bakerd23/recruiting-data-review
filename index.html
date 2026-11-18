@@ -312,7 +312,7 @@
 
   // ------------------------------------------------------------------ pair view (dup + pair)
   const LINK_KEYS = ["Profile", "Hudl", "Twitter", "247", "On3"];
-  const HIDE = new Set(["key", "Source", "Record"]);
+  const HIDE = new Set(["key", "Source", "Record", "Accounts"]);   // Accounts = which colleges' Catapult accounts track the recruit: says nothing about identity
   // compare values the way a person would: ignore case, punctuation, "https://www." and a trailing "(VA)"
   const norm = (v) => String(v ?? "").toLowerCase().replace(/^https?:\/\/(www\.)?/, "").replace(/^www\./, "")
     .replace(/\(([a-z]{2})\)$/, "").replace(/[^a-z0-9]/g, "");
@@ -365,7 +365,7 @@
     return rows.length ? el("div", { class: "why" }, rows) : null;
   }
   function pairPrompt(cur) {
-    const it = cur.item, show = (r) => Object.entries(r).filter(([k]) => !["key"].includes(k)).map(([k, v]) => `  ${k}: ${v}`).join("\n");
+    const it = cur.item, show = (r) => Object.entries(r).filter(([k]) => !["key", "Accounts"].includes(k)).map(([k, v]) => `  ${k}: ${v}`).join("\n");
     return `I'm checking whether two high school football recruiting profiles belong to the same player. Please search the web (Hudl, X/Twitter, MaxPreps, school rosters, local news) and tell me whether they are the same person, with a link for every claim. Watch for brothers, cousins and players with the same name at other schools. If you can't tell, say so instead of guessing.\n\nProfile A\n${show(it.a || {})}\n\nProfile B\n${show(it.b || {})}`;
   }
   function aiBox(text) {
@@ -510,7 +510,8 @@
       cur.item.group_label ? el("div", { class: "why" }, el("b", { text: "Why it's here: " }), cur.item.group_label) : null);
     const cands = el("div", { class: "cands" }, el("h3", { text: "Suggested College Board schools" }));
     (s.cands || []).forEach((c, i) => cands.append(el("button", { type: "button", "data-code": c.code, onclick: () => pickCode(cur, c.code) },
-      `${i + 1}. ${ceebLabel(c.code)} · code ${c.code} · ${c.why}`)));
+      // "name 90%" spelling scores only order the list and aren't shown; "code on the sheet" is a fact, so it is
+      `${i + 1}. ${ceebLabel(c.code)} · code ${c.code}${c.why && !/^name \d+%$/.test(c.why) ? " · " + c.why : ""}`)));
     if (!(s.cands || []).length) cands.append(el("p", { class: "small muted", text: "No suggestions. Search the list below." }));
     const q = el("input", { type: "search", placeholder: "Search the College Board list by name (3+ letters)" });
     const res = el("div", { class: "results" });
