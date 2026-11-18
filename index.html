@@ -312,6 +312,7 @@
 
   // ------------------------------------------------------------------ pair view (dup + pair)
   const LINK_KEYS = ["Profile", "Hudl", "Twitter", "247", "On3"];
+  const SHOW_AS = { Twitter: "X" };   // the data keeps its field names; only the label on screen changes
   const HIDE = new Set(["key", "Source", "Record", "Accounts"]);   // Accounts = which colleges' Catapult accounts track the recruit: says nothing about identity
   // compare values the way a person would: ignore case, punctuation, "https://www." and a trailing "(VA)"
   const norm = (v) => String(v ?? "").toLowerCase().replace(/^https?:\/\/(www\.)?/, "").replace(/^www\./, "")
@@ -328,7 +329,7 @@
     for (const k of labels) {
       const a = A[k], b = B[k], both = a != null && b != null && a !== "" && b !== "";
       const cls = both ? (norm(a) === norm(b) ? "same" : "diff") : "";
-      tb.append(el("tr", {}, el("th", { text: k }), el("td", { class: cls }, a == null ? "" : linkify(k, String(a))),
+      tb.append(el("tr", {}, el("th", { text: SHOW_AS[k] || k }), el("td", { class: cls }, a == null ? "" : linkify(k, String(a))),
                                                     el("td", { class: cls }, b == null ? "" : linkify(k, String(b)))));
     }
     const title = cur.tool === "dup" ? `Two ${it.source || ""} profiles: one player or two?` : "Two profiles from different sites: one player or two?";
@@ -357,7 +358,7 @@
     // Items inside a list are ";"-separated too, so split on the labels, not on every ";"
     const PART = { shared: /shared:\s*(.*?)(?=;\s*differs:|$)/i, differs: /differs:\s*(.*?)(?=;\s*shared:|$)/i };
     const part = (name) => { const m = String(it.why || "").match(PART[name]); return m ? m[1].trim() : ""; };
-    const tidy = (s) => s.split(/\s*;\s*/).filter(Boolean).join(", ");
+    const tidy = (s) => s.split(/\s*;\s*/).filter(Boolean).join(", ").replace(/\btwitter\b/gi, "X");
     const shared = part("shared"), differs = part("differs");
     const rows = [];
     if (shared) rows.push(el("div", {}, el("b", { text: "What lines up: " }), tidy(shared)));
@@ -365,8 +366,8 @@
     return rows.length ? el("div", { class: "why" }, rows) : null;
   }
   function pairPrompt(cur) {
-    const it = cur.item, show = (r) => Object.entries(r).filter(([k]) => !["key", "Accounts"].includes(k)).map(([k, v]) => `  ${k}: ${v}`).join("\n");
-    return `I'm checking whether two high school football recruiting profiles belong to the same player. Please search the web (Hudl, X/Twitter, MaxPreps, school rosters, local news) and tell me whether they are the same person, with a link for every claim. Watch for brothers, cousins and players with the same name at other schools. If you can't tell, say so instead of guessing.\n\nProfile A\n${show(it.a || {})}\n\nProfile B\n${show(it.b || {})}`;
+    const it = cur.item, show = (r) => Object.entries(r).filter(([k]) => !["key", "Accounts"].includes(k)).map(([k, v]) => `  ${SHOW_AS[k] || k}: ${v}`).join("\n");
+    return `I'm checking whether two high school football recruiting profiles belong to the same player. Please search the web (Hudl, X (formerly Twitter), MaxPreps, school rosters, local news) and tell me whether they are the same person, with a link for every claim. Watch for brothers, cousins and players with the same name at other schools. If you can't tell, say so instead of guessing.\n\nProfile A\n${show(it.a || {})}\n\nProfile B\n${show(it.b || {})}`;
   }
   function aiBox(text) {
     const btn = el("button", { class: "btn", type: "button", onclick: async () => {
@@ -381,7 +382,7 @@
   const PAIR_LABEL = { same: "Same player", different: "Different players", needs_review: "Needs review" };
   const PAIR_KEYS = { same: "S", different: "D", needs_review: "R" };
   const PAIR_REASONS = {
-    same: ["Same Hudl or Twitter", "Same name, school and class", "Nickname or spelling difference", "Transferred schools", "Found on a roster / MaxPreps"],
+    same: ["Same Hudl or X", "Same name, school and class", "Nickname or spelling difference", "Transferred schools", "Found on a roster / MaxPreps"],
     different: ["Different people (e.g. brothers)", "Different school and state", "Different class", "Different position and size", "Found both players separately"],
     needs_review: ["Can't tell from what's shown", "Information conflicts", "Couldn't find them online"] };
   let choice = null;
